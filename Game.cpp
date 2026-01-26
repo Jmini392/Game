@@ -1,15 +1,21 @@
 ﻿// Game.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
+#include "stdafx.h"
 #include "framework.h"
 #include "Game.h"
+#include "GameFramework.h"
 
 #define MAX_LOADSTRING 100
+#define CLIENT_WIDTH 800
+#define CLIENT_HEIGHT 600
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+
+GameFramework gGameFramework;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -40,19 +46,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GAME));
 
-    MSG msg;
+    MSG msg = {};
 
     // 기본 메시지 루프입니다:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    while (msg.message != WM_QUIT)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        // 메시지가 큐에 있는지 확인 (있으면 처리)
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+        else
+        {
+            // 메시지가 없을 때 게임 로직 실행 (Update & Render)
+            gGameFramework.Update();
+            gGameFramework.Render();
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 
@@ -98,11 +114,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, CLIENT_WIDTH, CLIENT_HEIGHT, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
       return FALSE;
+   }
+
+   if (!gGameFramework.Initialize(hWnd, CLIENT_WIDTH, CLIENT_HEIGHT))
+   {
+       MessageBox(0, L"D3D12 Initialization Failed", 0, 0);
+       return FALSE;
    }
 
    ShowWindow(hWnd, nCmdShow);
@@ -151,6 +173,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_DESTROY:
+		gGameFramework.Release();
         PostQuitMessage(0);
         break;
     default:

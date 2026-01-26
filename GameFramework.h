@@ -38,5 +38,18 @@ private:
 	UINT mCbvSrvUavDescriptorSize = 0; // ¼ÎÀÌ´õ ¸®¼Ò½º ºä µð½ºÅ©¸³ÅÍ Å©±â
 
 	HWND mhMainWnd = nullptr;
+
+	ComPtr<ID3D12DescriptorHeap> mRtvHeap; // ·»´õ Å¸°Ù ºä µð½ºÅ©¸³ÅÍ Èü
+	ComPtr<ID3D12DescriptorHeap> mDsvHeap; // ±íÀÌ-½ºÅÙ½Ç ºä µð½ºÅ©¸³ÅÍ Èü
+
+	static const int SwapChainBufferCount = 2;
+	ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
+	ComPtr<ID3D12Resource> mDepthStencilBuffer;
+
+	int mCurrBackBuffer = 0;
+
+	// ºäÆ÷Æ®¿Í ½ÃÀú »ç°¢Çü
+	D3D12_VIEWPORT mScreenViewport;
+	D3D12_RECT mScissorRect;
 };
 
