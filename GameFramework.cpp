@@ -221,6 +221,7 @@ void GameFramework::Render()
 	md3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	md3dCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	md3dCommandList->SetGraphicsRootConstantBufferView(0, mConstantBuffer->GetGPUVirtualAddress());
 	md3dCommandList->SetPipelineState(mPipelineState.Get());
 
 	md3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -264,7 +265,26 @@ void GameFramework::Render()
 
 void GameFramework::Update()
 {
+	mTheta += 0.005f;
+	if (mTheta > XM_2PI) mTheta -= XM_2PI; // XM_2PI는 2π 상수
 
+	XMMATRIX world = XMMatrixRotationZ(mTheta); // Z축 회전 행렬
+
+	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f); // 카메라 위치 벡터
+	XMVECTOR target = XMVectorZero(); // 카메라가 바라보는 지점(원점)
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // 카메라의 업 벡터
+	XMMATRIX view = XMMatrixLookAtLH(pos, target, up); // 뷰 행렬
+
+	float aspectRatio = static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspectRatio, 1.0f, 1000.0f); // 투영 행렬, XM_PIDIV4는 π/4 상수
+
+	XMMATRIX worldViewProj = world * view * proj; // 월드-뷰-투영 행렬
+
+	ObjectConstants cbData; // 상수 버퍼에 전달할 데이터
+	XMStoreFloat4x4(&cbData.worldViewProj, XMMatrixTranspose(worldViewProj)); // 행렬을 전치하여 저장, 셰이더에서 열 우선으로 사용하기 때문
+	// XMSttoreFloat4x4는 XMMATRIX를 XMFLOAT4X4로 변환하여 저장하는 함수
+
+	memcpy(mMappedData, &cbData, sizeof(ObjectConstants)); // 상수 버퍼에 데이터 복사
 }
 
 void GameFramework::Release()
@@ -274,9 +294,19 @@ void GameFramework::Release()
 
 bool GameFramework::BuildObjects()
 {
+	D3D12_ROOT_PARAMETER rootParam[1]; // 루트 파라미터 배열
+
+	D3D12_ROOT_DESCRIPTOR rootCBVDescriptor; // 루트 CBV 디스크립터
+	rootCBVDescriptor.RegisterSpace = 0;
+	rootCBVDescriptor.ShaderRegister = 0; // b0 레지스터
+
+	rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // CBV 타입, 상수 버퍼 뷰
+	rootParam[0].Descriptor = rootCBVDescriptor;
+	rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 접근 가능
+
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-	rootSigDesc.NumParameters = 0;
-	rootSigDesc.pParameters = nullptr;
+	rootSigDesc.NumParameters = 1; // 루트 파라미터 개수
+	rootSigDesc.pParameters = rootParam; // 루트 파라미터 배열
 	rootSigDesc.NumStaticSamplers = 0;
 	rootSigDesc.pStaticSamplers = nullptr;
 	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -446,6 +476,39 @@ bool GameFramework::BuildObjects()
 	mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
 	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	mIndexBufferView.SizeInBytes = indexBufferSize;
+
+	UINT elementByteSize = (sizeof(ObjectConstants) + 255) & ~255; // 256바이트 정렬)
+
+	D3D12_HEAP_PROPERTIES cbHeapProps = {}; // 상수 버퍼용 힙 속성
+	cbHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD; // 업로드 힙
+	cbHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	cbHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	cbHeapProps.CreationNodeMask = 1;
+	cbHeapProps.VisibleNodeMask = 1;
+
+	D3D12_RESOURCE_DESC cbDesc = {}; // 상수 버퍼용 리소스 서술자
+	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cbDesc.Width = elementByteSize; // 상수 버퍼 크기
+	cbDesc.Height = 1;
+	cbDesc.DepthOrArraySize = 1;
+	cbDesc.MipLevels = 1;
+	cbDesc.Format = DXGI_FORMAT_UNKNOWN;
+	cbDesc.SampleDesc.Count = 1;
+	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	if (FAILED(md3dDevice->CreateCommittedResource(
+		&cbHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&cbDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&mConstantBuffer)))) // IID_PPV_ARGS: COM 인터페이스 포인터 얻기 위한 매크로, _uuidof와 GetAddressOf()를 조합
+		return false;
+
+	D3D12_RANGE cbReadRange = { 0, 0 }; // CPU가 읽지 않을 것이므로 범위는 0으로 설정
+	if (FAILED(mConstantBuffer->Map(0, &cbReadRange, reinterpret_cast<void**>(&mMappedData))))
+		return false;
 
 	return true;
 }

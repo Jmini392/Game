@@ -14,6 +14,12 @@ struct Vertex
 	XMFLOAT4 color;    // RGBA 색상
 };
 
+struct ObjectConstants
+{
+	XMFLOAT4X4 worldViewProj; // 월드-뷰-투영 행렬
+	float padding[48]; // 256바이트 정렬을 위한 패딩
+};
+
 class GameFramework
 {
 public:
@@ -72,5 +78,15 @@ private:
 	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
 
 	UINT mIndexCount = 0;
+
+	ComPtr<ID3D12Resource> mConstantBuffer;
+	ComPtr<ID3D12DescriptorHeap> mCbvHeap; // 상수 버퍼 뷰 디스크립터 힙
+	UINT8* mMappedData = nullptr; // CPU가 데이터를 사용할 메모리 포인터
+
+	float mTheta = 0.0f; // 회전 각도
+
+	XMFLOAT4X4 mWorldMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 월드 행렬
+	XMFLOAT4X4 mViewMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 뷰 행렬
+	XMFLOAT4X4 mProjMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 투영 행렬
 };
 
