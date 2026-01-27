@@ -3,8 +3,16 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
+#include <DirectXMath.h>
 
 using namespace Microsoft::WRL;
+using namespace DirectX;
+
+struct Vertex
+{
+	XMFLOAT3 position; // x, y, z 좌표
+	XMFLOAT4 color;    // RGBA 색상
+};
 
 class GameFramework
 {
@@ -20,6 +28,8 @@ public:
 	void Release();
 
 private:
+	bool BuildObjects();
+
 	ComPtr<IDXGIFactory4> mdxgiFactory;
 	ComPtr<ID3D12Device> md3dDevice;
 	ComPtr<ID3D12Fence> md3dFence;
@@ -51,5 +61,16 @@ private:
 	// 뷰포트와 시저 사각형
 	D3D12_VIEWPORT mScreenViewport;
 	D3D12_RECT mScissorRect;
+
+	ComPtr<ID3D12RootSignature> mRootSignature;
+	ComPtr<ID3D12PipelineState> mPipelineState;
+
+	ComPtr<ID3D12Resource> mVertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+
+	ComPtr<ID3D12Resource> mIndexBuffer;
+	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+
+	UINT mIndexCount = 0;
 };
 

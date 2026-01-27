@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "GameFramework.h"
+#include <d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
 
 GameFramework::GameFramework()
 {
@@ -143,6 +145,9 @@ bool GameFramework::Initialize(HWND hwnd, int width, int height)
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 	md3dCommandList->ResourceBarrier(1, &barrier);
+
+	BuildObjects();
+
 	md3dCommandList->Close();
 
 	ID3D12CommandList* cmdsLists[] = { md3dCommandList.Get() };
@@ -215,6 +220,15 @@ void GameFramework::Render()
 	// 깊이-스텐실 뷰 클리어
 	md3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
+	md3dCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	md3dCommandList->SetPipelineState(mPipelineState.Get());
+
+	md3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	md3dCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
+	md3dCommandList->IASetIndexBuffer(&mIndexBufferView);
+
+	md3dCommandList->DrawIndexedInstanced(mIndexCount, 1, 0, 0, 0);
+
 	// 리소스 배리어
 	// 후면 버퍼를 프레젠트 상태로 전환
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -256,4 +270,182 @@ void GameFramework::Update()
 void GameFramework::Release()
 {
 
+}
+
+bool GameFramework::BuildObjects()
+{
+	D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
+	rootSigDesc.NumParameters = 0;
+	rootSigDesc.pParameters = nullptr;
+	rootSigDesc.NumStaticSamplers = 0;
+	rootSigDesc.pStaticSamplers = nullptr;
+	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+
+	if (FAILED(D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, signature.GetAddressOf(), error.GetAddressOf())))
+	{
+		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		return false;
+	}
+
+	if (FAILED(md3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature))))
+		return false;
+
+	ComPtr<ID3D10Blob> vertexShader;
+	ComPtr<ID3D10Blob> pixelShader;
+
+	UINT compileFlags = 0;
+#if defined( _DEBUG )
+	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	if (FAILED(D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "VS", "vs_5_0", compileFlags, 0, &vertexShader, &error)))
+	{
+		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		return false;
+	}
+
+	if (FAILED(D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "PS", "ps_5_0", compileFlags, 0, &pixelShader, &error)))
+	{
+		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		return false;
+	}
+
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+
+	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+	psoDesc.pRootSignature = mRootSignature.Get();
+
+	psoDesc.VS = { vertexShader->GetBufferPointer(), vertexShader->GetBufferSize() };
+	psoDesc.PS = { pixelShader->GetBufferPointer(), pixelShader->GetBufferSize() };
+
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
+	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+	psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+	psoDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+	psoDesc.RasterizerState.DepthClipEnable = TRUE;
+	psoDesc.RasterizerState.MultisampleEnable = FALSE;
+	psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
+	psoDesc.RasterizerState.ForcedSampleCount = 0;
+	psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+	psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+	psoDesc.BlendState.IndependentBlendEnable = FALSE;
+	const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc =
+	{
+		FALSE,FALSE,
+		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+		D3D12_LOGIC_OP_NOOP,
+		D3D12_COLOR_WRITE_ENABLE_ALL,
+	};
+	for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
+
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.DepthStencilState.StencilEnable = FALSE;
+
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.SampleDesc.Count = 1;
+
+	if (FAILED(md3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState))))
+		return false;
+
+	Vertex quadVertices[] =
+	{
+		// 위치 (x, y, z)          // 색상 (r, g, b, a)
+		{ { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, // 0. 좌상단 (빨강)
+		{ {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 1. 우상단 (초록)
+		{ {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 2. 우하단 (파랑)
+		{ { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } }  // 3. 좌하단 (노랑)
+	};
+
+	const UINT vertexBufferSize = sizeof(quadVertices);
+
+	// 인덱스 버퍼 데이터, 시계 방향 순서
+	uint16_t quadIndices[] = 
+	{
+		0, 1, 2, // 첫 번째 삼각형
+		0, 2, 3  // 두 번째 삼각형
+	};
+
+	const UINT indexBufferSize = sizeof(quadIndices);
+	mIndexCount = _countof(quadIndices);
+
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapProps.CreationNodeMask = 1;
+	heapProps.VisibleNodeMask = 1;
+
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Width = vertexBufferSize;
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	if (FAILED(md3dDevice->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&mVertexBuffer))))
+		return false;
+
+	UINT8* pVertexDataBegin;
+	D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)))) // reinterpret_cast: 포인터 타입 변환
+		return false;
+
+	memcpy(pVertexDataBegin, quadVertices, sizeof(quadVertices));
+	mVertexBuffer->Unmap(0, nullptr);
+
+	mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
+	mVertexBufferView.StrideInBytes = sizeof(Vertex);
+	mVertexBufferView.SizeInBytes = vertexBufferSize;
+
+	resourceDesc.Width = indexBufferSize;
+
+	if (FAILED(md3dDevice->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&mIndexBuffer))))
+		return false;
+
+	UINT8* pIndexDataBegin;
+	D3D12_RANGE indexReadRange = { 0, 0 };
+	if (FAILED(mIndexBuffer->Map(0, &indexReadRange, reinterpret_cast<void**>(&pIndexDataBegin))))
+		return false;
+
+	memcpy(pIndexDataBegin, quadIndices, sizeof(quadIndices));
+	mIndexBuffer->Unmap(0, nullptr);
+
+	mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
+	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+	mIndexBufferView.SizeInBytes = indexBufferSize;
+
+	return true;
 }
