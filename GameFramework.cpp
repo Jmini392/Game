@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 
+XMFLOAT3 eye = XMFLOAT3(0.0f, 15.0f, -25.0f);
+
 CGameFramework::CGameFramework()
 {
 	m_pdxgiFactory = NULL;
@@ -299,7 +301,7 @@ void CGameFramework::BuildObjects()
 	m_pCamera->SetScissorRect(0, 0, m_nWndClientWidth, m_nWndClientHeight);
 	m_pCamera->GenerateProjectionMatrix(1.0f, 500.0f, float(m_nWndClientWidth) /
 		float(m_nWndClientHeight), 90.0f);
-	m_pCamera->GenerateViewMatrix(XMFLOAT3(0.0f, 15.0f, -25.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	m_pCamera->GenerateViewMatrix(eye, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	//씬 객체를 생성하고 씬에 포함될 게임 객체들을 생성한다. 
 	m_pScene = new CScene();
 	m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
@@ -341,7 +343,7 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 {
 	switch (nMessageID)
 	{
-		case WM_KEYUP:
+		case WM_KEYDOWN:
 			switch (wParam)
 			{
 				case VK_ESCAPE:
@@ -351,6 +353,10 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 					break;
 				case VK_F9:
 					ChangeSwapChainState();
+					break;
+				case VK_RIGHT:
+					eye.z += 2.0f;
+					m_pCamera->GenerateViewMatrix(eye, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 					break;
 				default:
 					break;
