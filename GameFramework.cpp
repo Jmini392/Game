@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameFramework.h"
+#include "KeyMgr.h"
 
 XMFLOAT3 eye = XMFLOAT3(0.0f, 15.0f, -25.0f);
 
@@ -45,6 +46,8 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 {
 	m_hInstance = hInstance;
 	m_hWnd = hMainWnd;
+
+	KeyMgr::GetInstance().Init(hMainWnd);
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -354,10 +357,6 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 				case VK_F9:
 					ChangeSwapChainState();
 					break;
-				case VK_RIGHT:
-					eye.z += 2.0f;
-					m_pCamera->GenerateViewMatrix(eye, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
-					break;
 				default:
 					break;
 			}
@@ -394,6 +393,18 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 
 void CGameFramework::ProcessInput()
 {
+	// KeyMgr를 사용한 입력 처리 예시
+	if (KeyMgr::GetInstance().GetKeyState(KEY::RIGHT) == KEY_STATE::HOLD) {
+		eye.z += 0.1f;
+		m_pCamera->GenerateViewMatrix(eye, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	}
+	if (KeyMgr::GetInstance().GetKeyState(KEY::LEFT) == KEY_STATE::HOLD) {
+		eye.z -= 0.1f;
+		m_pCamera->GenerateViewMatrix(eye, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	}
+	if (KeyMgr::GetInstance().GetKeyState(KEY::ESC) == KEY_STATE::TAP) {
+		::PostQuitMessage(0);
+	}
 }
 
 void CGameFramework::AnimateObjects()
@@ -415,6 +426,9 @@ void CGameFramework::WaitForGpuComplete()
 void CGameFramework::FrameAdvance()
 {
 	m_GameTimer.Tick(0.0f);
+
+	KeyMgr::GetInstance().Update();
+
 	ProcessInput();
 	AnimateObjects();
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
