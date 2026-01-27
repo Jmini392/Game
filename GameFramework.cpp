@@ -268,7 +268,7 @@ void GameFramework::Update()
 	mTheta += 0.005f;
 	if (mTheta > XM_2PI) mTheta -= XM_2PI; // XM_2PI는 2π 상수
 
-	XMMATRIX world = XMMatrixRotationZ(mTheta); // Z축 회전 행렬
+	XMMATRIX world = XMMatrixRotationRollPitchYaw(0.0f, mTheta, 0.0f); // 월드 행렬(회전 행렬), x, y, z 축 순서로 회전
 
 	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f); // 카메라 위치 벡터
 	XMVECTOR target = XMVectorZero(); // 카메라가 바라보는 지점(원점)
