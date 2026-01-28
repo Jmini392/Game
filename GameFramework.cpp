@@ -382,8 +382,13 @@ bool GameFramework::BuildObjects()
 	for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
 
-	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.DepthStencilState.DepthEnable = TRUE;
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
+
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -394,26 +399,42 @@ bool GameFramework::BuildObjects()
 	if (FAILED(md3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState))))
 		return false;
 
-	Vertex quadVertices[] =
+	Vertex vertices[] =
 	{
-		// À§Ä¡ (x, y, z)          // »ö»ó (r, g, b, a)
-		{ { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, // 0. ÁÂ»ó´Ü (»¡°­)
-		{ {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 1. ¿ì»ó´Ü (ÃÊ·Ï)
-		{ {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 2. ¿ìÇÏ´Ü (ÆÄ¶û)
-		{ { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } }  // 3. ÁÂÇÏ´Ü (³ë¶û)
+		// ¾Õ¸é (Z = -0.5)
+		{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, // 0. ÁÂ»ó (»¡°­)
+		{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 1. ¿ì»ó (ÃÊ·Ï)
+		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 2. ¿ìÇÏ (ÆÄ¶û)
+		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f } }, // 3. ÁÂÇÏ (³ë¶û)
+
+		// µÞ¸é (Z = +0.5)
+		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, // 4. ÁÂ»ó (Ã»·Ï)
+		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } }, // 5. ¿ì»ó (ÀÚÁÖ)
+		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // 6. ¿ìÇÏ (Èò»ö)
+		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 0.0f, 1.0f } }  // 7. ÁÂÇÏ (°ËÁ¤)
 	};
 
-	const UINT vertexBufferSize = sizeof(quadVertices);
+	const UINT vertexBufferSize = sizeof(vertices);
 
 	// ÀÎµ¦½º ¹öÆÛ µ¥ÀÌÅÍ, ½Ã°è ¹æÇâ ¼ø¼­
-	uint16_t quadIndices[] = 
+	uint16_t indices[] =
 	{
-		0, 1, 2, // Ã¹ ¹øÂ° »ï°¢Çü
-		0, 2, 3  // µÎ ¹øÂ° »ï°¢Çü
+		// ¾Õ¸é
+		0, 1, 2,  0, 2, 3,
+		// µÞ¸é
+		4, 6, 5,  4, 7, 6,
+		// ¿ÞÂÊ¸é
+		4, 5, 1,  4, 1, 0,
+		// ¿À¸¥ÂÊ¸é
+		3, 2, 6,  3, 6, 7,
+		// À­¸é
+		1, 5, 6,  1, 6, 2,
+		// ¾Æ·§¸é
+		4, 0, 3,  4, 3, 7
 	};
 
-	const UINT indexBufferSize = sizeof(quadIndices);
-	mIndexCount = _countof(quadIndices);
+	const UINT indexBufferSize = sizeof(indices);
+	mIndexCount = _countof(indices); // 36°³
 
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -447,7 +468,7 @@ bool GameFramework::BuildObjects()
 	if (FAILED(mVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)))) // reinterpret_cast: Æ÷ÀÎÅÍ Å¸ÀÔ º¯È¯
 		return false;
 
-	memcpy(pVertexDataBegin, quadVertices, sizeof(quadVertices));
+	memcpy(pVertexDataBegin, vertices, sizeof(vertices));
 	mVertexBuffer->Unmap(0, nullptr);
 
 	mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
@@ -470,7 +491,7 @@ bool GameFramework::BuildObjects()
 	if (FAILED(mIndexBuffer->Map(0, &indexReadRange, reinterpret_cast<void**>(&pIndexDataBegin))))
 		return false;
 
-	memcpy(pIndexDataBegin, quadIndices, sizeof(quadIndices));
+	memcpy(pIndexDataBegin, indices, sizeof(indices));
 	mIndexBuffer->Unmap(0, nullptr);
 
 	mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
