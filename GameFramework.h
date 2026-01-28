@@ -6,6 +6,8 @@
 #include <DirectXMath.h>
 #include "Mesh.h"
 #include "Camera.h"
+#include <vector>
+#include "GameObject.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -61,7 +63,9 @@ private:
 
 	int mCurrBackBuffer = 0;
 
-	Mesh* mMesh = nullptr;
+	Mesh* mMesh = nullptr; // 메쉬는 리소스로서 하나만
+
+	std::vector<GameObject*> mGameObjects; // 게임 오브젝트 목록
 
 	// 뷰포트와 시저 사각형
 	D3D12_VIEWPORT mScreenViewport;

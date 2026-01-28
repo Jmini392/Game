@@ -234,11 +234,31 @@ void GameFramework::Render()
 	ID3D12DescriptorHeap* descriptorHeaps[] = { mSrvHeap.Get() };
 	md3dCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-	md3dCommandList->SetGraphicsRootConstantBufferView(0, mConstantBuffer->GetGPUVirtualAddress());
 	md3dCommandList->SetGraphicsRootDescriptorTable(1, mSrvHeap->GetGPUDescriptorHandleForHeapStart());
 	md3dCommandList->SetPipelineState(mPipelineState.Get());
 
-	if (mMesh) mMesh->Render(md3dCommandList.Get());
+	XMMATRIX viewProj = mCamera->GetViewProj();
+	UINT elementByteSize = (sizeof(ObjectConstants) + 255) & ~255;
+
+	for (int i = 0; i < mGameObjects.size(); ++i)
+	{
+		auto& obj = mGameObjects[i];
+
+		XMMATRIX world = obj->GetWorldMatrix();
+		XMMATRIX worldViewProj = world * viewProj;
+
+		ObjectConstants cbData;
+		XMStoreFloat4x4(&cbData.worldViewProj, XMMatrixTranspose(worldViewProj));
+
+		UINT8* pCurrentCB = mMappedData + (i * elementByteSize);
+		memcpy(pCurrentCB, &cbData, sizeof(ObjectConstants));
+
+		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mConstantBuffer->GetGPUVirtualAddress() + (i * elementByteSize);
+
+		md3dCommandList->SetGraphicsRootConstantBufferView(0, cbAddress);
+
+		obj->Render(md3dCommandList.Get());
+	}
 
 	// 리소스 배리어
 	// 후면 버퍼를 프레젠트 상태로 전환
@@ -277,19 +297,20 @@ void GameFramework::Update()
 {
 	mCamera->Update(0.05f); // 카메라 업데이트
 	
-	XMMATRIX world = XMMatrixIdentity();
-	XMMATRIX viewProj = mCamera->GetViewProj();
-	XMMATRIX worldViewProj = world * viewProj;
-
-	ObjectConstants cbData; // 상수 버퍼에 전달할 데이터
-	XMStoreFloat4x4(&cbData.worldViewProj, XMMatrixTranspose(worldViewProj)); // 행렬을 전치하여 저장, 셰이더에서 열 우선으로 사용하기 때문
-	// XMSttoreFloat4x4는 XMMATRIX를 XMFLOAT4X4로 변환하여 저장하는 함수
-
-	memcpy(mMappedData, &cbData, sizeof(ObjectConstants)); // 상수 버퍼에 데이터 복사
+	for (auto obj : mGameObjects)
+	{
+		obj->Update(0.01f); // 게임 오브젝트 업데이트
+	}
 }
 
 void GameFramework::Release()
 {
+	for (auto obj : mGameObjects)
+	{
+		if (obj) delete obj;
+	}
+	mGameObjects.clear();
+
 	if (mMesh) delete mMesh;
 	if (mCamera) delete mCamera;
 }
@@ -494,6 +515,25 @@ bool GameFramework::BuildObjects()
 	mMesh = new Mesh();
 	mMesh->Init(md3dDevice.Get(), vertices, indices);
 
+	GameObject* obj1 = new GameObject();
+	obj1->SetMesh(mMesh);
+	obj1->SetPosition(-2.0f, 0.0f, 0.0f);
+	mGameObjects.push_back(obj1);
+
+	GameObject* obj2 = new GameObject();
+	obj2->SetMesh(mMesh);
+	obj2->SetPosition(0.0f, 0.0f, 0.0f);
+	obj2->SetScale(1.5f);
+	mGameObjects.push_back(obj2);
+
+	GameObject* obj3 = new GameObject();
+	obj3->SetMesh(mMesh);
+	obj3->SetPosition(2.0f, 0.0f, 0.0f);
+	obj3->SetScale(0.5f);
+	mGameObjects.push_back(obj3);
+
+	UINT objCount = static_cast<UINT>(mGameObjects.size());
+
 	UINT elementByteSize = (sizeof(ObjectConstants) + 255) & ~255; // 256바이트 정렬)
 
 	D3D12_HEAP_PROPERTIES cbHeapProps = {}; // 상수 버퍼용 힙 속성
@@ -505,7 +545,7 @@ bool GameFramework::BuildObjects()
 
 	D3D12_RESOURCE_DESC cbDesc = {}; // 상수 버퍼용 리소스 서술자
 	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	cbDesc.Width = elementByteSize; // 상수 버퍼 크기
+	cbDesc.Width = elementByteSize * objCount; // 상수 버퍼 크기
 	cbDesc.Height = 1;
 	cbDesc.DepthOrArraySize = 1;
 	cbDesc.MipLevels = 1;
