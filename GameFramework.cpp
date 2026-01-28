@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 #include <d3dcompiler.h>
+#include <vector>
 #pragma comment(lib, "d3dcompiler.lib")
 
 GameFramework::GameFramework()
@@ -24,7 +25,9 @@ bool GameFramework::Initialize(HWND hwnd, int width, int height)
 #endif
 
 	// DXGI 팩토리 생성(그래픽 카드 검색?)
-	if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&mdxgiFactory)))) return false;
+	ComPtr<IDXGIFactory1> factory1;
+	if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory1)))) return false;
+	if (FAILED(factory1.As(&mdxgiFactory))) return false;
 
 	// 디바이스 생성
 	if (FAILED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&md3dDevice))))
@@ -146,7 +149,9 @@ bool GameFramework::Initialize(HWND hwnd, int width, int height)
 
 	md3dCommandList->ResourceBarrier(1, &barrier);
 
-	BuildObjects();
+	if (!BuildTexture()) return false;
+
+	if (!BuildObjects()) return false;
 
 	md3dCommandList->Close();
 
@@ -221,7 +226,12 @@ void GameFramework::Render()
 	md3dCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	md3dCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { mSrvHeap.Get() };
+	md3dCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
 	md3dCommandList->SetGraphicsRootConstantBufferView(0, mConstantBuffer->GetGPUVirtualAddress());
+	md3dCommandList->SetGraphicsRootDescriptorTable(1, mSrvHeap->GetGPUDescriptorHandleForHeapStart());
 	md3dCommandList->SetPipelineState(mPipelineState.Get());
 
 	md3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -294,21 +304,44 @@ void GameFramework::Release()
 
 bool GameFramework::BuildObjects()
 {
-	D3D12_ROOT_PARAMETER rootParam[1]; // 루트 파라미터 배열
+	D3D12_ROOT_PARAMETER rootParam[2]; // 루트 파라미터 배열
 
 	D3D12_ROOT_DESCRIPTOR rootCBVDescriptor; // 루트 CBV 디스크립터
 	rootCBVDescriptor.RegisterSpace = 0;
 	rootCBVDescriptor.ShaderRegister = 0; // b0 레지스터
-
 	rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // CBV 타입, 상수 버퍼 뷰
 	rootParam[0].Descriptor = rootCBVDescriptor;
 	rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 접근 가능
 
+	D3D12_DESCRIPTOR_RANGE range;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; // SRV 타입, 셰이더 리소스 뷰
+	range.NumDescriptors = 1; // 디스크립터 개수
+	range.BaseShaderRegister = 0; // t0 레지스터
+	range.RegisterSpace = 0;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	rootParam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE; // 디스크립터 테이블 타입
+	rootParam[1].DescriptorTable.NumDescriptorRanges = 1; // 디스크립터 레인지 개수
+	rootParam[1].DescriptorTable.pDescriptorRanges = &range; // 디스크립터 레인지 배열
+	rootParam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // 픽셀 셰이더에서만 접근 가능
+
+	D3D12_STATIC_SAMPLER_DESC sampler = {};
+	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	sampler.MinLOD = 0;
+	sampler.MaxLOD = D3D12_FLOAT32_MAX;
+	sampler.ShaderRegister = 0; // s0 레지스터
+	sampler.RegisterSpace = 0;
+	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-	rootSigDesc.NumParameters = 1; // 루트 파라미터 개수
+	rootSigDesc.NumParameters = 2; // 루트 파라미터 개수
 	rootSigDesc.pParameters = rootParam; // 루트 파라미터 배열
-	rootSigDesc.NumStaticSamplers = 0;
-	rootSigDesc.pStaticSamplers = nullptr;
+	rootSigDesc.NumStaticSamplers = 1;
+	rootSigDesc.pStaticSamplers = &sampler;
 	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	ComPtr<ID3DBlob> signature;
@@ -316,37 +349,50 @@ bool GameFramework::BuildObjects()
 
 	if (FAILED(D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, signature.GetAddressOf(), error.GetAddressOf())))
 	{
-		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		MessageBoxA(nullptr, (char*)error->GetBufferPointer(), "Root Signature Serialize Error", MB_OK);
 		return false;
 	}
 
 	if (FAILED(md3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature))))
+	{
+		MessageBox(nullptr, L"CreateRootSignature Failed", L"Error", MB_OK);
 		return false;
+	}
 
 	ComPtr<ID3D10Blob> vertexShader;
 	ComPtr<ID3D10Blob> pixelShader;
-
 	UINT compileFlags = 0;
 #if defined( _DEBUG )
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	if (FAILED(D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "VS", "vs_5_0", compileFlags, 0, &vertexShader, &error)))
+	HRESULT hrVS = D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "VS", "vs_5_0", compileFlags, 0, &vertexShader, &error);
+	if (FAILED(hrVS))
 	{
-		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		if (hrVS == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
+			MessageBox(nullptr, L"Shaders.hlsl 파일을 찾을 수 없습니다! (프로젝트 폴더 확인)", L"Error", MB_OK);
+		else if (error)
+			MessageBoxA(nullptr, (char*)error->GetBufferPointer(), "Vertex Shader Compile Error", MB_OK);
+		else
+			MessageBox(nullptr, L"Unknown Vertex Shader Error", L"Error", MB_OK);
 		return false;
 	}
 
-	if (FAILED(D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "PS", "ps_5_0", compileFlags, 0, &pixelShader, &error)))
+	HRESULT hrPS = D3DCompileFromFile(L"Shaders.hlsl", nullptr, nullptr, "PS", "ps_5_0", compileFlags, 0, &pixelShader, &error);
+	if (FAILED(hrPS))
 	{
-		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+		if (error)
+			MessageBoxA(nullptr, (char*)error->GetBufferPointer(), "Pixel Shader Compile Error", MB_OK);
+		else
+			MessageBox(nullptr, L"Unknown Pixel Shader Error", L"Error", MB_OK);
 		return false;
 	}
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -397,21 +443,24 @@ bool GameFramework::BuildObjects()
 	psoDesc.SampleDesc.Count = 1;
 
 	if (FAILED(md3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState))))
+	{
+		MessageBox(nullptr, L"PSO Creation Failed! (Input Layout or Shader Error)", L"Error", MB_OK);
 		return false;
+	}
 
 	Vertex vertices[] =
 	{
 		// 앞면 (Z = -0.5)
-		{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, // 0. 좌상 (빨강)
-		{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 1. 우상 (초록)
-		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 2. 우하 (파랑)
-		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f } }, // 3. 좌하 (노랑)
+		{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+		{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
+		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
 
 		// 뒷면 (Z = +0.5)
-		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, // 4. 좌상 (청록)
-		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } }, // 5. 우상 (자주)
-		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // 6. 우하 (흰색)
-		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 0.0f, 1.0f } }  // 7. 좌하 (검정)
+		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } }
 	};
 
 	const UINT vertexBufferSize = sizeof(vertices);
@@ -419,22 +468,16 @@ bool GameFramework::BuildObjects()
 	// 인덱스 버퍼 데이터, 시계 방향 순서
 	uint16_t indices[] =
 	{
-		// 앞면
-		0, 1, 2,  0, 2, 3,
-		// 뒷면
-		4, 6, 5,  4, 7, 6,
-		// 왼쪽면
-		4, 5, 1,  4, 1, 0,
-		// 오른쪽면
-		3, 2, 6,  3, 6, 7,
-		// 윗면
-		1, 5, 6,  1, 6, 2,
-		// 아랫면
-		4, 0, 3,  4, 3, 7
+		0, 1, 2,  0, 2, 3,  // 앞
+		4, 6, 5,  4, 7, 6,  // 뒤
+		4, 5, 1,  4, 1, 0,  // 왼
+		3, 2, 6,  3, 6, 7,  // 오
+		1, 5, 6,  1, 6, 2,  // 위
+		4, 0, 3,  4, 3, 7   // 아래
 	};
 
 	const UINT indexBufferSize = sizeof(indices);
-	mIndexCount = _countof(indices); // 36개
+	mIndexCount = _countof(indices);
 
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -530,6 +573,139 @@ bool GameFramework::BuildObjects()
 	D3D12_RANGE cbReadRange = { 0, 0 }; // CPU가 읽지 않을 것이므로 범위는 0으로 설정
 	if (FAILED(mConstantBuffer->Map(0, &cbReadRange, reinterpret_cast<void**>(&mMappedData))))
 		return false;
+
+	return true;
+}
+
+bool GameFramework::BuildTexture()
+{
+	const UINT texWidth = 64;
+	const UINT texHeight = 64;
+	const UINT pixelSize = 4; // RGBA 각 1바이트
+	std::vector<UINT8> textureData(texWidth * texHeight * pixelSize);
+
+	for (UINT i = 0; i < texHeight; ++i)
+	{
+		for (UINT j = 0; j < texWidth; ++j)
+		{
+			// 8픽셀마다 색 반전(체크무늬)
+			bool isWhite = ((i / 8) % 2) == ((j / 8) % 2);
+			UINT8 color = isWhite ? 255 : 0;
+
+			UINT index = (i * texWidth + j) * pixelSize;
+			textureData[index + 0] = color; // R
+			textureData[index + 1] = color; // G
+			textureData[index + 2] = color; // B
+			textureData[index + 3] = 255;   // A
+		}
+	}
+
+	D3D12_RESOURCE_DESC texDesc = {};
+	texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	texDesc.Alignment = 0;
+	texDesc.Width = texWidth;
+	texDesc.Height = texHeight;
+	texDesc.DepthOrArraySize = 1;
+	texDesc.MipLevels = 1;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	if (FAILED(md3dDevice->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&texDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&mTexture))))
+	{
+		return false;
+	}
+
+	UINT64 uploadBufferSize = 0;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+	UINT numRows = 0;
+	UINT64 rowSizeInBytes = 0;
+
+	md3dDevice->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows, &rowSizeInBytes, &uploadBufferSize);
+
+	D3D12_HEAP_PROPERTIES uploadHeapProps = {};
+	uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+	D3D12_RESOURCE_DESC uploadBufferDesc = {};
+	uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	uploadBufferDesc.Width = uploadBufferSize;
+	uploadBufferDesc.Height = 1;
+	uploadBufferDesc.DepthOrArraySize = 1;
+	uploadBufferDesc.MipLevels = 1;
+	uploadBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uploadBufferDesc.SampleDesc.Count = 1;
+	uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	uploadBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	if (FAILED(md3dDevice->CreateCommittedResource(
+		&uploadHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&uploadBufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&mTextureUpload))))
+	{
+		return false;
+	}
+
+	UINT8* pMappedData = nullptr;
+	mTextureUpload->Map(0, nullptr, reinterpret_cast<void**>(&pMappedData));
+
+	for (UINT i = 0; i < numRows; ++i)
+	{
+		UINT8* src = textureData.data() + (i * texWidth * pixelSize);
+		UINT8* dest = pMappedData + footprint.Offset + (i * footprint.Footprint.RowPitch);
+		memcpy(dest, src, texWidth * pixelSize);
+	}
+	mTextureUpload->Unmap(0, nullptr);
+
+	D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+	srcLoc.pResource = mTextureUpload.Get();
+	srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	srcLoc.PlacedFootprint = footprint;
+
+	D3D12_TEXTURE_COPY_LOCATION destLoc = {};
+	destLoc.pResource = mTexture.Get();
+	destLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	destLoc.SubresourceIndex = 0;
+
+	md3dCommandList->CopyTextureRegion(&destLoc, 0, 0, 0, &srcLoc, nullptr);
+
+	D3D12_RESOURCE_BARRIER texBarrier = {};
+	texBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	texBarrier.Transition.pResource = mTexture.Get();
+	texBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	texBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	texBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	texBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	md3dCommandList->ResourceBarrier(1, &texBarrier);
+
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+	srvHeapDesc.NumDescriptors = 1;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능
+
+	if (FAILED(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvHeap))))
+		return false;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = texDesc.Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	md3dDevice->CreateShaderResourceView(mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	return true;
 }

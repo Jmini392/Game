@@ -12,6 +12,7 @@ struct Vertex
 {
 	XMFLOAT3 position; // x, y, z ÁÂÇ¥
 	XMFLOAT4 color;    // RGBA »ö»ó
+	XMFLOAT2 uv;       // ÅØ½ºÃ³ ÁÂÇ¥
 };
 
 struct ObjectConstants
@@ -35,6 +36,7 @@ public:
 
 private:
 	bool BuildObjects();
+	bool BuildTexture();
 
 	ComPtr<IDXGIFactory4> mdxgiFactory;
 	ComPtr<ID3D12Device> md3dDevice;
@@ -88,5 +90,9 @@ private:
 	XMFLOAT4X4 mWorldMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // ¿ùµå Çà·Ä
 	XMFLOAT4X4 mViewMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // ºä Çà·Ä
 	XMFLOAT4X4 mProjMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // Åõ¿µ Çà·Ä
+
+	ComPtr<ID3D12Resource> mTexture;
+	ComPtr<ID3D12Resource> mTextureUpload;
+	ComPtr<ID3D12DescriptorHeap> mSrvHeap; // ¼ÎÀÌ´õ ¸®¼Ò½º ºä µð½ºÅ©¸³ÅÍ Èü
 };
 
