@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include <vector>
 #include "GameObject.h"
+#include "Timer.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -30,6 +31,8 @@ public:
 	void Render();
 
 	void Release();
+
+	Timer& GetTimer() { return mTimer; }
 
 private:
 	bool BuildObjects();
@@ -85,5 +88,7 @@ private:
 	ComPtr<ID3D12Resource> mTexture;
 	ComPtr<ID3D12Resource> mTextureUpload;
 	ComPtr<ID3D12DescriptorHeap> mSrvHeap; // ¼ÎÀÌ´õ ¸®¼Ò½º ºä µð½ºÅ©¸³ÅÍ Èü
+
+	Timer mTimer;
 };
 

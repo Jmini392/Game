@@ -184,6 +184,8 @@ bool GameFramework::Initialize(HWND hwnd, int width, int height)
 	float aspectRatio = static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
 	mCamera->SetLens(XM_PIDIV4, aspectRatio, 1.0f, 1000.0f);
 
+	mTimer.Reset();
+
 	return true;
 }
 
@@ -295,11 +297,15 @@ void GameFramework::Render()
 
 void GameFramework::Update()
 {
-	mCamera->Update(0.05f); // 카메라 업데이트
+	mTimer.Tick();
+
+	float dt = mTimer.DeltaTime();
+
+	mCamera->Update(dt); // 카메라 업데이트
 	
 	for (auto obj : mGameObjects)
 	{
-		obj->Update(0.01f); // 게임 오브젝트 업데이트
+		obj->Update(dt); // 게임 오브젝트 업데이트
 	}
 }
 

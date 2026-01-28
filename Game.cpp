@@ -47,6 +47,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GAME));
 
     MSG msg = {};
+	gGameFramework.GetTimer().Reset();
 
     // 기본 메시지 루프입니다:
     while (msg.message != WM_QUIT)
