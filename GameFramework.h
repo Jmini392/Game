@@ -94,5 +94,9 @@ private:
 	ComPtr<ID3D12Resource> mTexture;
 	ComPtr<ID3D12Resource> mTextureUpload;
 	ComPtr<ID3D12DescriptorHeap> mSrvHeap; // 셰이더 리소스 뷰 디스크립터 힙
+
+	float mCameraRadius = 5.0f; // 카메라 거리
+	float mCameraTheta = 1.5f * XM_PI; // 카메라 세타 각도(수평)
+	float mCameraPhi = XM_PIDIV4; // 카메라 파이 각도(수직)
 };
 

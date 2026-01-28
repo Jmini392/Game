@@ -275,14 +275,36 @@ void GameFramework::Render()
 
 void GameFramework::Update()
 {
-	mTheta += 0.005f;
-	if (mTheta > XM_2PI) mTheta -= XM_2PI; // XM_2PI는 2π 상수
+	const float dt = 0.05f;
 
-	XMMATRIX world = XMMatrixRotationRollPitchYaw(0.0f, mTheta, mTheta * 0.5f); // 월드 행렬(회전 행렬), x, y, z 축 순서로 회전
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+		mCameraTheta -= dt;
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+		mCameraTheta += dt;
 
-	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f); // 카메라 위치 벡터
+	if (GetAsyncKeyState(VK_UP) & 0x8000)
+		mCameraPhi -= dt;
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+		mCameraPhi += dt;
+
+	if (GetAsyncKeyState('W') & 0x8000)
+		mCameraRadius -= dt * 2.0f;
+	if (GetAsyncKeyState('S') & 0x8000)
+		mCameraRadius += dt * 2.0f;
+
+	if (mCameraPhi <= 0.1f) mCameraPhi = 0.1f; // 너무 아래로 내려가지 않도록 제한
+	if (mCameraPhi >= XM_PI - 0.1f) mCameraPhi = XM_PI - 0.1f; // 너무 위로 올라가지 않도록 제한
+
+	float x = mCameraRadius * sinf(mCameraPhi) * cosf(mCameraTheta); // 카메라의 x 좌표
+	float y = mCameraRadius * cosf(mCameraPhi); // 카메라의 y 좌표
+	float z = mCameraRadius * sinf(mCameraPhi) * sinf(mCameraTheta); // 카메라의 z 좌표
+	
+	XMMATRIX world = XMMatrixIdentity();
+
+	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f); // 카메라 위치 벡터
 	XMVECTOR target = XMVectorZero(); // 카메라가 바라보는 지점(원점)
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // 카메라의 업 벡터
+
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up); // 뷰 행렬
 
 	float aspectRatio = static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
