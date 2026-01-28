@@ -5,6 +5,7 @@
 #include <wrl.h>
 #include <DirectXMath.h>
 #include "Mesh.h"
+#include "Camera.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -73,18 +74,12 @@ private:
 	ComPtr<ID3D12DescriptorHeap> mCbvHeap; // 상수 버퍼 뷰 디스크립터 힙
 	UINT8* mMappedData = nullptr; // CPU가 데이터를 사용할 메모리 포인터
 
-	float mTheta = 0.0f; // 회전 각도
-
 	XMFLOAT4X4 mWorldMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 월드 행렬
-	XMFLOAT4X4 mViewMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 뷰 행렬
-	XMFLOAT4X4 mProjMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }; // 투영 행렬
+
+	Camera* mCamera = nullptr;
 
 	ComPtr<ID3D12Resource> mTexture;
 	ComPtr<ID3D12Resource> mTextureUpload;
 	ComPtr<ID3D12DescriptorHeap> mSrvHeap; // 셰이더 리소스 뷰 디스크립터 힙
-
-	float mCameraRadius = 5.0f; // 카메라 거리
-	float mCameraTheta = 1.5f * XM_PI; // 카메라 세타 각도(수평)
-	float mCameraPhi = XM_PIDIV4; // 카메라 파이 각도(수직)
 };
 

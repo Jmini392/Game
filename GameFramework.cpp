@@ -180,6 +180,10 @@ bool GameFramework::Initialize(HWND hwnd, int width, int height)
 	// 시저 사각형 설정(화면 전체)
 	mScissorRect = { 0, 0, mClientWidth, mClientHeight };
 
+	mCamera = new Camera();
+	float aspectRatio = static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
+	mCamera->SetLens(XM_PIDIV4, aspectRatio, 1.0f, 1000.0f);
+
 	return true;
 }
 
@@ -271,42 +275,11 @@ void GameFramework::Render()
 
 void GameFramework::Update()
 {
-	const float dt = 0.05f;
-
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-		mCameraTheta -= dt;
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-		mCameraTheta += dt;
-
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
-		mCameraPhi -= dt;
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-		mCameraPhi += dt;
-
-	if (GetAsyncKeyState('W') & 0x8000)
-		mCameraRadius -= dt * 2.0f;
-	if (GetAsyncKeyState('S') & 0x8000)
-		mCameraRadius += dt * 2.0f;
-
-	if (mCameraPhi <= 0.1f) mCameraPhi = 0.1f; // 너무 아래로 내려가지 않도록 제한
-	if (mCameraPhi >= XM_PI - 0.1f) mCameraPhi = XM_PI - 0.1f; // 너무 위로 올라가지 않도록 제한
-
-	float x = mCameraRadius * sinf(mCameraPhi) * cosf(mCameraTheta); // 카메라의 x 좌표
-	float y = mCameraRadius * cosf(mCameraPhi); // 카메라의 y 좌표
-	float z = mCameraRadius * sinf(mCameraPhi) * sinf(mCameraTheta); // 카메라의 z 좌표
+	mCamera->Update(0.05f); // 카메라 업데이트
 	
 	XMMATRIX world = XMMatrixIdentity();
-
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f); // 카메라 위치 벡터
-	XMVECTOR target = XMVectorZero(); // 카메라가 바라보는 지점(원점)
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // 카메라의 업 벡터
-
-	XMMATRIX view = XMMatrixLookAtLH(pos, target, up); // 뷰 행렬
-
-	float aspectRatio = static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspectRatio, 1.0f, 1000.0f); // 투영 행렬, XM_PIDIV4는 π/4 상수
-
-	XMMATRIX worldViewProj = world * view * proj; // 월드-뷰-투영 행렬
+	XMMATRIX viewProj = mCamera->GetViewProj();
+	XMMATRIX worldViewProj = world * viewProj;
 
 	ObjectConstants cbData; // 상수 버퍼에 전달할 데이터
 	XMStoreFloat4x4(&cbData.worldViewProj, XMMatrixTranspose(worldViewProj)); // 행렬을 전치하여 저장, 셰이더에서 열 우선으로 사용하기 때문
@@ -317,11 +290,8 @@ void GameFramework::Update()
 
 void GameFramework::Release()
 {
-	if (mMesh)
-	{
-		delete mMesh;
-		mMesh = nullptr;
-	}
+	if (mMesh) delete mMesh;
+	if (mCamera) delete mCamera;
 }
 
 bool GameFramework::BuildObjects()
