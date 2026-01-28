@@ -4,16 +4,10 @@
 #include <dxgi1_6.h>
 #include <wrl.h>
 #include <DirectXMath.h>
+#include "Mesh.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
-
-struct Vertex
-{
-	XMFLOAT3 position; // x, y, z 좌표
-	XMFLOAT4 color;    // RGBA 색상
-	XMFLOAT2 uv;       // 텍스처 좌표
-};
 
 struct ObjectConstants
 {
@@ -66,20 +60,14 @@ private:
 
 	int mCurrBackBuffer = 0;
 
+	Mesh* mMesh = nullptr;
+
 	// 뷰포트와 시저 사각형
 	D3D12_VIEWPORT mScreenViewport;
 	D3D12_RECT mScissorRect;
 
 	ComPtr<ID3D12RootSignature> mRootSignature;
 	ComPtr<ID3D12PipelineState> mPipelineState;
-
-	ComPtr<ID3D12Resource> mVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
-
-	ComPtr<ID3D12Resource> mIndexBuffer;
-	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
-
-	UINT mIndexCount = 0;
 
 	ComPtr<ID3D12Resource> mConstantBuffer;
 	ComPtr<ID3D12DescriptorHeap> mCbvHeap; // 상수 버퍼 뷰 디스크립터 힙
