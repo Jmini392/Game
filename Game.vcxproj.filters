@@ -23,6 +23,24 @@
     <Filter Include="Engine\04.Object">
       <UniqueIdentifier>{e7970f50-c296-4554-91a2-a2f2281efea4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\05.Scene">
+      <UniqueIdentifier>{3cac53df-2b5d-4729-becd-b758e20a5383}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\06.Shader">
+      <UniqueIdentifier>{6fca2d2d-dbdf-49e2-bed0-9dd6a0cc0a9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Key">
+      <UniqueIdentifier>{9f8df2c2-d356-4ecf-a4af-bb6a5af8304c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Scene">
+      <UniqueIdentifier>{667cdd5b-20ce-4ef7-aa54-7e14153add10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Time">
+      <UniqueIdentifier>{4a9e9ec5-810c-4f7b-bf0c-7aa3a1943f93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\05.Scene\TestScene">
+      <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -36,6 +54,42 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="define.h">
+      <Filter>Engine\01.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Core.h">
+      <Filter>Engine\02.Core</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyMgr.h">
+      <Filter>Engine\03.Manager\Key</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeMgr.h">
+      <Filter>Engine\03.Manager\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneMgr.h">
+      <Filter>Engine\03.Manager\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="TestScene.h">
+      <Filter>Engine\05.Scene\TestScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Engine\05.Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Engine\06.Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -55,10 +109,43 @@
     <ClCompile Include="Game.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Core.cpp">
+      <Filter>Engine\02.Core</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyMgr.cpp">
+      <Filter>Engine\03.Manager\Key</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeMgr.cpp">
+      <Filter>Engine\03.Manager\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneMgr.cpp">
+      <Filter>Engine\03.Manager\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScene.cpp">
+      <Filter>Engine\05.Scene\TestScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Engine\05.Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Engine\06.Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders.hlsl">
-      <Filter>Engine</Filter>
+      <Filter>Engine\06.Shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
