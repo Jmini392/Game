@@ -1,53 +1,72 @@
+#include "stdafx.h"
 #include "Camera.h"
 
 Camera::Camera()
 {
-	mTheta = 1.5f * XM_PI;
-	mPhi = XM_PIDIV4;
-	mRadius = 5.0f;
-
-	XMStoreFloat4x4(&mView, XMMatrixIdentity());
-	XMStoreFloat4x4(&mProj, XMMatrixIdentity());
+	m_xmf4x4View = Matrix4x4::Identity();
+	m_xmf4x4Projection = Matrix4x4::Identity();
+	m_d3dViewport = { 0, 0, FRAME_BUFFER_WIDTH , FRAME_BUFFER_HEIGHT, 0.0f, 1.0f };
+	m_d3dScissorRect = { 0, 0, FRAME_BUFFER_WIDTH , FRAME_BUFFER_HEIGHT };
 }
 
-void Camera::SetLens(float fovY, float aspect, float zn, float zf)
+Camera::~Camera()
 {
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(fovY, aspect, zn, zf);
-	XMStoreFloat4x4(&mProj, proj);
 }
 
-void Camera::Update(float dt)
+void Camera::SetViewport(int xTopLeft, int yTopLeft, int nWidth, int nHeight, float
+	fMinZ, float fMaxZ)
 {
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-		mTheta -= dt;
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-		mTheta += dt;
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
-		mPhi -= dt;
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-		mPhi += dt;
-
-	if (GetAsyncKeyState('W') & 0x8000)
-		mRadius -= dt * 2.0f;
-	if (GetAsyncKeyState('S') & 0x8000)
-		mRadius += dt * 2.0f;
-
-	if (mPhi <= 0.1f) mPhi = 0.1f;
-	if (mPhi >= XM_PI - 0.1f) mPhi = XM_PI - 0.1f;
-
-	float x = mRadius * sinf(mPhi) * cosf(mTheta);
-	float y = mRadius * cosf(mPhi);
-	float z = mRadius * sinf(mPhi) * sinf(mTheta);
-
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, view);
+	m_d3dViewport.TopLeftX = float(xTopLeft);
+	m_d3dViewport.TopLeftY = float(yTopLeft);
+	m_d3dViewport.Width = float(nWidth);
+	m_d3dViewport.Height = float(nHeight);
+	m_d3dViewport.MinDepth = fMinZ;
+	m_d3dViewport.MaxDepth = fMaxZ;
 }
 
-XMMATRIX Camera::GetViewProj() const
+void Camera::SetScissorRect(LONG xLeft, LONG yTop, LONG xRight, LONG yBottom)
 {
-	return XMLoadFloat4x4(&mView) * XMLoadFloat4x4(&mProj);
+	m_d3dScissorRect.left = xLeft;
+	m_d3dScissorRect.top = yTop;
+	m_d3dScissorRect.right = xRight;
+	m_d3dScissorRect.bottom = yBottom;
+}
+
+void Camera::GenerateProjectionMatrix(float fNearPlaneDistance, float fFarPlaneDistance, float fAspectRatio, float fFOVAngle)
+{
+	m_xmf4x4Projection = Matrix4x4::PerspectiveFovLH(XMConvertToRadians(fFOVAngle),
+		fAspectRatio, fNearPlaneDistance, fFarPlaneDistance);
+}
+
+void Camera::GenerateViewMatrix(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3LookAt, XMFLOAT3
+	xmf3Up)
+{
+	m_xmf4x4View = Matrix4x4::LookAtLH(xmf3Position, xmf3LookAt, xmf3Up);
+}
+
+void Camera::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+	* pd3dCommandList)
+{
+}
+
+void Camera::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	XMFLOAT4X4 xmf4x4View;
+	XMStoreFloat4x4(&xmf4x4View, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4View)));
+	//루트 파라메터 인덱스 1의
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4View, 0);
+	XMFLOAT4X4 xmf4x4Projection;
+	XMStoreFloat4x4(&xmf4x4Projection,
+		XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4Projection)));
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4Projection, 16);
+}
+
+void Camera::ReleaseShaderVariables()
+{
+}
+
+void Camera::SetViewportsAndScissorRects(ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	pd3dCommandList->RSSetViewports(1, &m_d3dViewport);
+	pd3dCommandList->RSSetScissorRects(1, &m_d3dScissorRect);
 }
