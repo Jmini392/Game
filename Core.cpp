@@ -155,7 +155,7 @@ void Core::Progress()
 	m_pdxgiSwapChain->Present(0, 0);
 	MoveToNextFrame();
 	//m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
-	::SetWindowText(m_handle, m_pszFrameRate);
+	//::SetWindowText(m_handle, m_pszFrameRate);
 }
 
 void Core::CreateSwapChain()

@@ -29,6 +29,7 @@ enum class GROUP_TYPE {
 
 enum class SCENE_TYPE {
 	TEST,
+	COLLISION, // 충돌 테스트 씬
 
 	END,
 };
