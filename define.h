@@ -20,6 +20,7 @@
 enum class GROUP_TYPE {
 	DEFAULT,
 	TEST,
+	UI,
 
 	END = 32,
 };

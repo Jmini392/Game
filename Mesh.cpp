@@ -126,3 +126,40 @@ CubeMeshDiffused::CubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 CubeMeshDiffused::~CubeMeshDiffused()
 {
 }
+
+QuadMeshDiffused::QuadMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+	float fWidth, float fHeight, float fX, float fY) : Mesh(pd3dDevice, pd3dCommandList)
+{
+	m_nVertices = 4;
+	m_nStride = sizeof(DiffusedVertex);
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+
+	//화면 픽셀 좌표계에서 버텍스 생성 z=0
+	//fWidth = 가로 길이, fHeight = 세로길이, fX , fY = 시작좌표
+	DiffusedVertex pVertices[4];
+	pVertices[0] = DiffusedVertex(XMFLOAT3(fX, fY, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));				// top-left
+	pVertices[1] = DiffusedVertex(XMFLOAT3(fX + fWidth, fY, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));		// top-right
+	pVertices[2] = DiffusedVertex(XMFLOAT3(fX + fWidth, fY + fHeight, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // bottom-right
+	pVertices[3] = DiffusedVertex(XMFLOAT3(fX, fY + fHeight, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));		// bottom-left
+
+	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices,
+		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+	m_d3dVertexBufferView.StrideInBytes = m_nStride;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+	// 인덱스: two triangles
+	m_nIndices = 6;
+	UINT pnIndices[6] = { 0,2,1, 0,3,2 };
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices,
+		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER,
+		&m_pd3dIndexUploadBuffer);
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+}
+
+QuadMeshDiffused::~QuadMeshDiffused()
+{
+}

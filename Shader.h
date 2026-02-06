@@ -58,3 +58,18 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
 	virtual void CreateShader(ID3D12Device* pd3dDevice);
 };
+
+class UIScreenShader : public DiffusedShader
+{
+public:
+	UIScreenShader();
+	virtual ~UIScreenShader() {}
+	// Render 오버라이드에서 직접 view/proj(직교)를 루트 상수에 씁니다.
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera) override;
+
+	// 화면 직교 설정: left,right,top,bottom 은 픽셀 좌표(왼쪽 상단 원점 사용 시 top=0, bottom=FRAME_BUFFER_HEIGHT)
+	void SetOrtho(float left, float right, float top, float bottom, float znear = 0.0f, float zfar = 1.0f);
+private:
+	XMFLOAT4X4 m_xmf4x4View;
+	XMFLOAT4X4 m_xmf4x4Projection;
+};

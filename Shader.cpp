@@ -298,3 +298,37 @@ void DiffusedShader::CreateShader(ID3D12Device* pd3dDevice)
 	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
 	Shader::CreateShader(pd3dDevice);
 }
+
+// UIScreenShader 구현
+UIScreenShader::UIScreenShader()
+{
+	// 기본 Identity
+	m_xmf4x4View = Matrix4x4::Identity();
+	m_xmf4x4Projection = Matrix4x4::Identity();
+}
+
+void UIScreenShader::SetOrtho(float left, float right, float top, float bottom, float znear, float zfar)
+{
+	// DirectXMath 사용하여 직교 매트릭스 생성
+	XMMATRIX mtxView = XMMatrixIdentity();
+	// XMMatrixOrthographicOffCenterLH expects (left, right, bottom, top, znear, zfar)
+	XMMATRIX mtxProj = XMMatrixOrthographicOffCenterLH(left, right, bottom, top, znear, zfar);
+	XMStoreFloat4x4(&m_xmf4x4View, mtxView);
+	XMStoreFloat4x4(&m_xmf4x4Projection, mtxProj);
+}
+
+void UIScreenShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
+{
+	// 파이프라인 설정
+	OnPrepareRender(pd3dCommandList);
+
+	// view(16 floats) 루트 상수에 기록 (전치)
+	XMFLOAT4X4 xmf4x4View;
+	XMStoreFloat4x4(&xmf4x4View, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4View)));
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4View, 0);
+
+	// projection(16 floats) 루트 상수에 기록 (전치)
+	XMFLOAT4X4 xmf4x4Projection;
+	XMStoreFloat4x4(&xmf4x4Projection, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4Projection)));
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4Projection, 16);
+}

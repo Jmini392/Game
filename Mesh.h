@@ -83,3 +83,14 @@ public:
 	*pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CubeMeshDiffused();
 };
+
+
+// 화면 픽셀 좌표계(왼쪽-상단 원점)에서 그릴 수 있는 Quad 메쉬
+class QuadMeshDiffused : public Mesh
+{
+public:
+	// width, height: 크기(픽셀), x,y: 화면 내 좌표(왼쪽 상단 기준)
+	QuadMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+		float fWidth, float fHeight, float fX = 0.0f, float fY = 0.0f);
+	virtual ~QuadMeshDiffused();
+};
