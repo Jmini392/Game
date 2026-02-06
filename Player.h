@@ -6,7 +6,7 @@ public:
 	Player(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	~Player();
 
-	void Update();
+	virtual void Update() override;
 	virtual void Render();
 };
 
