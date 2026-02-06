@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
+#include "Shader.h"
 
 class Shader;
 class Camera;
@@ -25,7 +26,7 @@ public:
 	virtual void SetShader(Shader* pShader);
 	virtual void Animate(float fTimeElapsed);
 	virtual void OnPrepareRender();
-	virtual void Update();
+	virtual void Update() = 0;
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera);
 
 	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
