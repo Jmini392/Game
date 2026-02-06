@@ -16,6 +16,9 @@
 #define KEY_TAP(key) KEY_CHECK(key, KEY_STATE::TAP)
 #define KEY_NONE(key) KEY_CHECK(key, KEY_STATE::NONE)
 
+#define fDT TimeMgr::Instance()->getfDT()
+#define DT TimeMgr::Instance()->getDT()
+
 
 enum class GROUP_TYPE {
 	DEFAULT,

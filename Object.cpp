@@ -45,9 +45,6 @@ void Object::OnPrepareRender()
 {
 }
 
-void Object::Update()
-{
-}
 
 void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 {
