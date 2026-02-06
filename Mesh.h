@@ -83,3 +83,10 @@ public:
 	*pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CubeMeshDiffused();
 };
+
+class BoundingBoxMesh : public Mesh // 바운딩 박스 출력을 위한 메쉬 클래스
+{
+public:
+	BoundingBoxMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual ~BoundingBoxMesh() {};
+};

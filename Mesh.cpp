@@ -126,3 +126,49 @@ CubeMeshDiffused::CubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 CubeMeshDiffused::~CubeMeshDiffused()
 {
 }
+
+BoundingBoxMesh::BoundingBoxMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) // 바운딩 박스 출력을 위한 메쉬 클래스
+	: Mesh(pd3dDevice, pd3dCommandList)
+{
+	m_nVertices = 8;
+	m_nStride = sizeof(DiffusedVertex);
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_LINELIST; // 선(Line)으로 그리기 설정
+
+	// 빨간색으로 설정 (디버그용)
+	XMFLOAT4 color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+
+	// 1x1x1 크기의 단위 큐브 생성 (-0.5 ~ +0.5)
+	DiffusedVertex pVertices[8];
+	pVertices[0] = DiffusedVertex(XMFLOAT3(-0.5f, -0.5f, -0.5f), color);
+	pVertices[1] = DiffusedVertex(XMFLOAT3(-0.5f, +0.5f, -0.5f), color);
+	pVertices[2] = DiffusedVertex(XMFLOAT3(+0.5f, +0.5f, -0.5f), color);
+	pVertices[3] = DiffusedVertex(XMFLOAT3(+0.5f, -0.5f, -0.5f), color);
+	pVertices[4] = DiffusedVertex(XMFLOAT3(-0.5f, -0.5f, +0.5f), color);
+	pVertices[5] = DiffusedVertex(XMFLOAT3(-0.5f, +0.5f, +0.5f), color);
+	pVertices[6] = DiffusedVertex(XMFLOAT3(+0.5f, +0.5f, +0.5f), color);
+	pVertices[7] = DiffusedVertex(XMFLOAT3(+0.5f, -0.5f, +0.5f), color);
+
+	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices,
+		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+
+	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+	m_d3dVertexBufferView.StrideInBytes = m_nStride;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+	// 선을 그리기 위한 인덱스 (총 12개의 선, 24개의 인덱스)
+	m_nIndices = 24;
+	UINT pnIndices[24] = {
+		0, 1, 1, 2, 2, 3, 3, 0, // 앞면
+		4, 5, 5, 6, 6, 7, 7, 4, // 뒷면
+		0, 4, 1, 5, 2, 6, 3, 7  // 연결선
+	};
+
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices,
+		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER,
+		&m_pd3dIndexUploadBuffer);
+
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+}

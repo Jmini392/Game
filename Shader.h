@@ -14,7 +14,7 @@ public:
 	Shader();
 	virtual ~Shader();
 
-private:
+protected:
 	int m_nReferences = 0;
 	static ID3D12RootSignature* s_pd3dGraphicsRootSignature;  // ← static으로 모든 Shader 공유
 	static bool s_bRootSignatureCreated;
@@ -58,3 +58,17 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
 	virtual void CreateShader(ID3D12Device* pd3dDevice);
 };
+
+
+namespace Dbg
+{ // 디버그 용도 셰이더(바운딩 박스 확인용 셰이더)
+	class DebugShader : public DiffusedShader // 바운딩 박스 확인용 셰이더
+	{
+	public:
+		DebugShader();
+		virtual ~DebugShader();
+
+		virtual void CreateShader(ID3D12Device* pd3dDevice) override;
+	};
+}
+
