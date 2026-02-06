@@ -64,3 +64,14 @@ void Object::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 		XMConvertToRadians(fAngle));
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
 }
+
+void Object::SetBB(const XMFLOAT3& center, const XMFLOAT3& extents)
+{
+	m_localBB.Center = center;
+	m_localBB.Extents = extents;
+}	
+
+void Object::UpdateWorldBB()
+{
+	m_localBB.Transform(m_worldBB, XMLoadFloat4x4(&m_xmf4x4World));
+}
