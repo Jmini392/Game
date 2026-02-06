@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SceneMgr.h"
 #include "TestScene.h"
+#include "CollisionCheckScene.h"
 
 SceneMgr::SceneMgr()
 	:arrScene()
@@ -22,8 +23,11 @@ void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCom
 	//arrScene[(UINT)SCENE_TYPE::STAGE_O1] = new Scene_Start;
 	//arrScene[(UINT)SCENE_TYPE::STAGE_O2] = new Scene_Start;
 
+	arrScene[(UINT)SCENE_TYPE::COLLISION] = new CollisionCheckScene;
+	arrScene[(UINT)SCENE_TYPE::COLLISION]->SetName(L"Collision Check Scene");
+
 	//ÇöÀç ¾À ÁöÁ¤
-	currScene = arrScene[(UINT)SCENE_TYPE::TEST];
+	currScene = arrScene[(UINT)SCENE_TYPE::COLLISION];
 	currScene->Enter(pd3dDevice, pd3dCommandList);
 }
 
