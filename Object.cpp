@@ -61,6 +61,18 @@ void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 	if (m_pMesh) m_pMesh->Render(pd3dCommandList);
 }
 
+void Object::Scale(XMFLOAT3* pxmf3Scale)
+{
+	XMMATRIX mtxScale = XMMatrixScalingFromVector(XMLoadFloat3(pxmf3Scale));
+	m_xmf4x4World = Matrix4x4::Multiply(mtxScale, m_xmf4x4World);
+}
+
+void Object::Move(XMFLOAT3* pxmf3Shift)
+{
+	XMMATRIX mtxTranslate = XMMatrixTranslationFromVector(XMLoadFloat3(pxmf3Shift));
+	m_xmf4x4World = Matrix4x4::Multiply(mtxTranslate, m_xmf4x4World);
+}
+
 void Object::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis),

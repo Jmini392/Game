@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "SceneMgr.h"
-#include "TestScene.h"
+#include "PlayScene.h"
 
 SceneMgr::SceneMgr()
 	:arrScene()
@@ -17,8 +17,8 @@ SceneMgr::~SceneMgr()
 void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	//Scene »ý¼º
-	arrScene[(UINT)SCENE_TYPE::TEST] = new TestScene;
-	arrScene[(UINT)SCENE_TYPE::TEST]->SetName(L"Test Scene");
+	arrScene[(UINT)SCENE_TYPE::TEST] = new PlayScene;
+	arrScene[(UINT)SCENE_TYPE::TEST]->SetName(L"Play Scene");
 	//arrScene[(UINT)SCENE_TYPE::STAGE_O1] = new Scene_Start;
 	//arrScene[(UINT)SCENE_TYPE::STAGE_O2] = new Scene_Start;
 

@@ -2,13 +2,15 @@
 
 #include "Scene.h"
 
-class TestScene : public Scene
+class PlayScene : public Scene
 {
 public:
-	TestScene();
-	~TestScene();
+	PlayScene();
+	~PlayScene();
 
 	virtual void Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void Exit();
+
+	void RoadMeshes(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 };
 

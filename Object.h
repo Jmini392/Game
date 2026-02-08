@@ -27,6 +27,9 @@ public:
 	virtual void OnPrepareRender();
 	virtual void Update();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera);
+	// virtual RECT GetBB() {};
 
+	void Scale(XMFLOAT3* pxmf3Scale);
+	void Move(XMFLOAT3* pxmf3Shift);
 	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
 };

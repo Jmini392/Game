@@ -128,10 +128,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="car.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="define.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Ground.h" />
     <ClInclude Include="KeyMgr.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
@@ -141,13 +143,15 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TestScene.h" />
+    <ClInclude Include="PlayScene.h" />
     <ClInclude Include="TimeMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="car.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Ground.cpp" />
     <ClCompile Include="KeyMgr.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
@@ -155,7 +159,7 @@
     <ClCompile Include="SceneMgr.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="TestScene.cpp" />
+    <ClCompile Include="PlayScene.cpp" />
     <ClCompile Include="TimeMgr.cpp" />
   </ItemGroup>
   <ItemGroup>

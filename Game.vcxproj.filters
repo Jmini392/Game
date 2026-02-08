@@ -38,8 +38,14 @@
     <Filter Include="Engine\03.Manager\Time">
       <UniqueIdentifier>{4a9e9ec5-810c-4f7b-bf0c-7aa3a1943f93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\05.Scene\TestScene">
+    <Filter Include="Engine\05.Scene\PlayScene">
       <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Map">
+      <UniqueIdentifier>{06938f69-c277-4e33-9c43-e31cb5ba2804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Entities">
+      <UniqueIdentifier>{39bac426-a117-41bb-bd88-21bc3d7ebda1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,14 +88,20 @@
     <ClInclude Include="Mesh.h">
       <Filter>Engine\04.Object</Filter>
     </ClInclude>
-    <ClInclude Include="TestScene.h">
-      <Filter>Engine\05.Scene\TestScene</Filter>
+    <ClInclude Include="PlayScene.h">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Engine\05.Scene</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Engine\06.Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Ground.h">
+      <Filter>Engine\04.Object\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="car.h">
+      <Filter>Engine\04.Object\Entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -133,14 +145,20 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Engine\04.Object</Filter>
     </ClCompile>
-    <ClCompile Include="TestScene.cpp">
-      <Filter>Engine\05.Scene\TestScene</Filter>
+    <ClCompile Include="PlayScene.cpp">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Engine\05.Scene</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Engine\06.Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Ground.cpp">
+      <Filter>Engine\04.Object\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="car.cpp">
+      <Filter>Engine\04.Object\Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
