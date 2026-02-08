@@ -3,6 +3,7 @@ class Mesh
 {
 public:
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile) {}
 	virtual ~Mesh();
 private:
 	int m_nReferences = 0;
@@ -41,31 +42,29 @@ class Vertex
 protected:
 	//정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다).
 	XMFLOAT3 m_xmf3Position;
-public:
-	Vertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); }
-	Vertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
-	~Vertex() {}
-};
-
-class DiffusedVertex : public Vertex
-{
-protected:
-	//정점의 색상이다. 
+	XMFLOAT3 m_xmf3Normal;
+	XMFLOAT2 m_xmf2UV;
 	XMFLOAT4 m_xmf4Diffuse;
 public:
-	DiffusedVertex() {
+	Vertex() { 
 		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); 
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
 		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-
-	DiffusedVertex(float x, float y, float z, XMFLOAT4 xmf4Diffuse) {
-		m_xmf3Position = XMFLOAT3(x, y, z); m_xmf4Diffuse = xmf4Diffuse;
+	Vertex(XMFLOAT3 xmf3Position) { 
+		m_xmf3Position = xmf3Position; 
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-
-	DiffusedVertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse) {
-		m_xmf3Position = xmf3Position; m_xmf4Diffuse = xmf4Diffuse;
+	Vertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse) {
+		m_xmf3Position = xmf3Position;
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+		m_xmf4Diffuse = xmf4Diffuse;
 	}
-	~DiffusedVertex() {}
+	~Vertex() {}
 };
 
 class TriangleMesh : public Mesh
@@ -82,4 +81,11 @@ public:
 	CubeMeshDiffused(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CubeMeshDiffused();
+};
+
+class GroundMesh : public Mesh
+{
+public:
+	GroundMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth, float fHeight);
+	virtual ~GroundMesh();
 };
