@@ -6,81 +6,129 @@ Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
-Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile) {
-	std::ifstream file(MeshFile);
-	if (!file.is_open()) {
-		throw std::runtime_error("Failed to open mesh file: " + MeshFile);
-	}
-	std::string line;
+Mesh::Mesh(ID3D12Device* pd3dDevice,
+    ID3D12GraphicsCommandList* pd3dCommandList,
+    std::string MeshFile)
+{
+    std::ifstream file(MeshFile);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open mesh file: " + MeshFile);
+    }
 
-	std::vector<XMFLOAT3> positions;
-	std::vector<UINT> indices;
-	std::vector<Vertex> vertices;
+    std::string line;
 
-	while (std::getline(file, line)) {
-		std::stringstream ss(line);
-		std::string prefix;
-		ss >> prefix;
+    // OBJ raw data
+    std::vector<XMFLOAT3> positions;
+    std::vector<XMFLOAT3> normals;
+    std::vector<XMFLOAT2> uvs;
 
-		if (prefix == "v") {
-			XMFLOAT3 pos;
-			ss >> pos.x >> pos.y >> pos.z;
-			positions.push_back(pos);
-		}
-		else if (prefix == "f") {
-			std::vector<UINT> faceIndices;
-			std::string vertexData;
+    // Final GPU data
+    std::vector<Vertex> vertices;
+    std::vector<UINT> indices;
 
-			// 한 줄의 모든 정점 인덱스를 읽음
-			while (ss >> vertexData) {
-				UINT index;
-				// "v/vt/vn" 또는 "v//vn" 또는 "v" 형식 처리
-				size_t slashPos = vertexData.find('/');
-				if (slashPos != std::string::npos) {
-					index = std::stoi(vertexData.substr(0, slashPos));
-				}
-				else {
-					index = std::stoi(vertexData);
-				}
-				// OBJ 파일 인덱스는 1부터 시작하므로 1을 빼줍니다.
-				faceIndices.push_back(index - 1);
-			}
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string prefix;
+        ss >> prefix;
 
-			// 삼각형 분할 (Fan Triangulation)
-			// n개의 정점이 있으면 (n-2)개의 삼각형으로 분할
-			for (size_t i = 1; i < faceIndices.size() - 1; ++i) {
-				indices.push_back(faceIndices[0]);
-				indices.push_back(faceIndices[i]);
-				indices.push_back(faceIndices[i + 1]);
-			}
-		}
-	}
+        // ------------------------
+        // Position
+        // ------------------------
+        if (prefix == "v") {
+            XMFLOAT3 pos;
+            ss >> pos.x >> pos.y >> pos.z;
+            positions.push_back(pos);
+        }
+        // ------------------------
+        // Texcoord
+        // ------------------------
+        else if (prefix == "vt") {
+            XMFLOAT2 uv;
+            ss >> uv.x >> uv.y;
+            uv.y = 1.0f - uv.y; // DirectX 좌표계 보정
+            uvs.push_back(uv);
+        }
+        // ------------------------
+        // Normal
+        // ------------------------
+        else if (prefix == "vn") {
+            XMFLOAT3 normal;
+            ss >> normal.x >> normal.y >> normal.z;
+            normals.push_back(normal);
+        }
+        // ------------------------
+        // Face
+        // ------------------------
+        else if (prefix == "f") {
+            std::string vertexStr;
+            std::vector<UINT> faceIndices;
 
-	vertices.resize(positions.size());
-	for (size_t i = 0; i < positions.size(); ++i) {
-		vertices[i] = Vertex(positions[i], XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f)); // 기본 색상
-	}
+            while (ss >> vertexStr) {
+                UINT v = 0, vt = 0, vn = 0;
 
-	m_nVertices = vertices.size();
-	m_nStride = sizeof(Vertex);
-	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+                // v/vt/vn 형식 파싱
+                sscanf_s(vertexStr.c_str(), "%d/%d/%d", &v, &vt, &vn);
 
-	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, vertices.data(),
-		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
-		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+                Vertex vertex;
+                vertex.m_xmf3Position = positions[v - 1];
+                vertex.m_xmf2UV = (vt > 0) ? uvs[vt - 1] : XMFLOAT2(0.0f, 0.0f);
+                vertex.m_xmf3Normal = (vn > 0) ? normals[vn - 1] : XMFLOAT3(0.0f, 1.0f, 0.0f);
+                vertex.m_xmf4Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
-	m_d3dVertexBufferView.StrideInBytes = m_nStride;
-	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+                vertices.push_back(vertex);
+                faceIndices.push_back((UINT)vertices.size() - 1);
+            }
 
-	m_nIndices = indices.size();
-	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, indices.data(),
-		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER,
-		&m_pd3dIndexUploadBuffer);
+            // Fan triangulation
+            for (size_t i = 1; i + 1 < faceIndices.size(); ++i) {
+                indices.push_back(faceIndices[0]);
+                indices.push_back(faceIndices[i]);
+                indices.push_back(faceIndices[i + 1]);
+            }
+        }
+    }
 
-	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
-	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+    file.close();
+
+    // ========================
+    // Vertex Buffer
+    // ========================
+    m_nVertices = (UINT)vertices.size();
+    m_nStride = sizeof(Vertex);
+    m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+    m_pd3dVertexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        vertices.data(),
+        m_nStride * m_nVertices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+        &m_pd3dVertexUploadBuffer
+    );
+
+    m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+    m_d3dVertexBufferView.StrideInBytes = m_nStride;
+    m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+    // ========================
+    // Index Buffer
+    // ========================
+    m_nIndices = (UINT)indices.size();
+
+    m_pd3dIndexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        indices.data(),
+        sizeof(UINT) * m_nIndices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_INDEX_BUFFER,
+        &m_pd3dIndexUploadBuffer
+    );
+
+    m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+    m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+    m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
 }
 
 
@@ -125,13 +173,14 @@ GroundMesh::GroundMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3d
 	m_nStride = sizeof(Vertex);
 	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	XMFLOAT4 COLOR = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	XMFLOAT3 NORMAL = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	float fx = fWidth * 0.5f,fy = -6.0f, fz = fHeight * 0.5f;
 	//정점 버퍼는 직육면체의 꼭지점 8개에 대한 정점 데이터를 가진다. 
 	Vertex pVertices[4];
-	pVertices[0] = Vertex(XMFLOAT3(-fx, +fy, -fz), COLOR);
-	pVertices[1] = Vertex(XMFLOAT3(+fx, +fy, -fz), COLOR);
-	pVertices[2] = Vertex(XMFLOAT3(+fx, +fy, +fz), COLOR);
-	pVertices[3] = Vertex(XMFLOAT3(-fx, +fy, +fz), COLOR);
+	pVertices[0] = Vertex(XMFLOAT3(-fx, +fy, -fz), COLOR, NORMAL);
+	pVertices[1] = Vertex(XMFLOAT3(+fx, +fy, -fz), COLOR, NORMAL);
+	pVertices[2] = Vertex(XMFLOAT3(+fx, +fy, +fz), COLOR, NORMAL);
+	pVertices[3] = Vertex(XMFLOAT3(-fx, +fy, +fz), COLOR, NORMAL);
 	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices,
 		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
 		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);

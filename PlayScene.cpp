@@ -25,6 +25,12 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		);
 	}
 
+	// Á¶¸í ÃÊ±âÈ­
+	if (m_pLight) {
+		m_pLight->SetLightColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // Èò»ö ±¤¿ø
+		m_pLight->SetLightDirection(XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f)); // À§¡æ¾Æ·¡ ¹æÇâ±¤
+	}
+
 	Ground* ground = new Ground(pd3dDevice, pd3dCommandList, 250, 10000);
 
 	Car* car = new Car(pd3dDevice, pd3dCommandList, XMFLOAT3(0.0f, 10.0f, 10.0f), XMFLOAT3(10,10,10));

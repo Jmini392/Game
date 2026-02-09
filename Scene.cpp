@@ -4,9 +4,10 @@
 #include "Object.h"
 
 Scene::Scene()
-	:m_pCamera(nullptr)
+	:m_pCamera(nullptr), m_pLight(nullptr)
 {
 	m_pCamera = new Camera();
+	m_pLight = new Light();
 }
 
 Scene::~Scene()
@@ -19,6 +20,11 @@ Scene::~Scene()
 
 	if (m_pCamera) {
 		delete m_pCamera;
+	}
+
+	if (m_pLight) {
+		delete m_pLight;
+		m_pLight = nullptr;
 	}
 }
 
@@ -36,6 +42,10 @@ void Scene::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 	if (m_pCamera) {
 		m_pCamera->SetViewportsAndScissorRects(pd3dCommandList);
 		m_pCamera->UpdateShaderVariables(pd3dCommandList);
+	}
+
+	if (m_pLight) {
+		m_pLight->UpdateShaderVariables(pd3dCommandList);
 	}
 
 	for (UINT i = 0; i < (UINT)GROUP_TYPE::END; ++i) {

@@ -39,7 +39,7 @@ public:
 //정점을 표현하기 위한 클래스를 선언한다. 
 class Vertex
 {
-protected:
+public:
 	//정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다).
 	XMFLOAT3 m_xmf3Position;
 	XMFLOAT3 m_xmf3Normal;
@@ -58,9 +58,9 @@ public:
 		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
 		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-	Vertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse) {
+	Vertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse, XMFLOAT3 xmfNormal = XMFLOAT3(0,0,0)) {
 		m_xmf3Position = xmf3Position;
-		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf3Normal = xmfNormal;
 		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
 		m_xmf4Diffuse = xmf4Diffuse;
 	}

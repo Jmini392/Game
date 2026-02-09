@@ -103,6 +103,9 @@
     <ClInclude Include="car.h">
       <Filter>Engine\04.Object\Entities</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc">
@@ -159,6 +162,9 @@
     </ClCompile>
     <ClCompile Include="car.cpp">
       <Filter>Engine\04.Object\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Engine\04.Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

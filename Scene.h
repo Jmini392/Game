@@ -1,6 +1,7 @@
 #pragma once
 #include "Shader.h"
 #include "Camera.h"
+#include "Light.h"
 
 class Object;
 
@@ -12,6 +13,7 @@ private:
 
 protected:
 	Camera* m_pCamera;
+	Light*	m_pLight;
 
 public:
 	Scene();
@@ -27,6 +29,7 @@ public:
 	virtual void Exit() = 0;
 
 	Camera* GetCamera() { return m_pCamera; }
+	Light* GetLight() { return m_pLight; }
 
 public:
 	void AddObject(Object* obj, GROUP_TYPE type) { arrObj[(UINT)type].push_back(obj); }

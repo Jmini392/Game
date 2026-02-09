@@ -23,7 +23,7 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	if (s_bRootSignatureCreated) return;  // 이미 생성됨
 
 	// Root Parameter 설정
-	D3D12_ROOT_PARAMETER pd3dRootParameters[2];
+	D3D12_ROOT_PARAMETER pd3dRootParameters[3];
 
 	// Root Parameter[0]: World 행렬 (b0 레지스터)
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
@@ -39,13 +39,20 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	pd3dRootParameters[1].Constants.RegisterSpace = 0;
 	pd3dRootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-	// Root Signature Flags
+	// Root Parameter[2]: 조명 정보 (b2 레지스터) - 픽셀 셰이더에서 사용
+	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	pd3dRootParameters[2].Constants.Num32BitValues = 16;  // CB_LIGHT_INFO 구조체 크기 (4개의 XMFLOAT4)
+	pd3dRootParameters[2].Constants.ShaderRegister = 2;
+	pd3dRootParameters[2].Constants.RegisterSpace = 0;
+	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// Root Signature Flags - 이제 픽셀 셰이더도 접근 가능하도록 변경
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		// D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS 제거!
 
 	// Root Signature Descriptor
 	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
@@ -181,6 +188,28 @@ pszShaderName, LPCSTR pszShaderProfile, ID3DBlob** ppd3dShaderBlob)
 #if defined(_DEBUG)
 	nCompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
+	ID3DBlob* pErrorBlob = NULL;
+	HRESULT hr = ::D3DCompileFromFile(pszFileName, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		pszShaderName, pszShaderProfile, nCompileFlags, 0, ppd3dShaderBlob, &pErrorBlob);
+	if (FAILED(hr))
+	{
+		if (pErrorBlob)
+		{
+			OutputDebugStringA("셰이더 컴파일 에러: ");
+			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+			OutputDebugStringA("\n");
+			pErrorBlob->Release();
+		}
+
+		// 컴파일 실패 시 빈 바이트코드 반환
+		D3D12_SHADER_BYTECODE d3dShaderByteCode;
+		d3dShaderByteCode.BytecodeLength = 0;
+		d3dShaderByteCode.pShaderBytecode = NULL;
+		return d3dShaderByteCode;
+	}
+
+	if (pErrorBlob) pErrorBlob->Release();
+
 	::D3DCompileFromFile(pszFileName, NULL, NULL, pszShaderName, pszShaderProfile,
 		nCompileFlags, 0, ppd3dShaderBlob, NULL);
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
@@ -253,7 +282,14 @@ void Shader::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XM
 	pd3dCommandList->SetGraphicsRoot32BitConstants(0, 16, &xmf4x4World, 0);
 }
 
-void Shader::ReleaseShaderVariables()
+// 조명 정보를 셰이더에 전달
+void Shader::UpdateLightVariable(ID3D12GraphicsCommandList* pd3dCommandList,
+	const CB_LIGHT_INFO& lightInfo)
+{
+	pd3dCommandList->SetGraphicsRoot32BitConstants(2, 16, &lightInfo, 0);
+}
+
+void Shader::ReleaseShaderVariables()			
 {
 }
 
