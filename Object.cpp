@@ -32,6 +32,13 @@ void Object::SetMesh(Mesh* pMesh)
 	if (m_pMesh) m_pMesh->AddRef();
 }
 
+void Object::SetPos(float x, float y, float z)
+{
+	m_xmf4x4World._41 = x;
+	m_xmf4x4World._42 = y;
+	m_xmf4x4World._43 = z;
+}
+
 void Object::ReleaseUploadBuffers()
 {
 	if (m_pMesh) m_pMesh->ReleaseUploadBuffers();

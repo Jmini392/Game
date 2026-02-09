@@ -41,6 +41,9 @@
     <Filter Include="Engine\05.Scene\TestScene">
       <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\05.Scene\PlayScene">
+      <UniqueIdentifier>{11ac8e55-f406-4bcf-8988-611f2956aa64}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -90,6 +93,9 @@
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Engine\06.Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayScene.h">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +147,9 @@
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Engine\06.Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayScene.cpp">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -20,12 +20,14 @@
 enum class GROUP_TYPE {
 	DEFAULT,
 	TEST,
+	PLAY,
 
 	END = 32,
 };
 
 enum class SCENE_TYPE {
 	TEST,
+	PLAY,
 
 	END,
 };

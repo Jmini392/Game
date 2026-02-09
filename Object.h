@@ -23,6 +23,7 @@ public:
 	void ReleaseUploadBuffers();
 	virtual void SetMesh(Mesh* pMesh);
 	virtual void SetShader(Shader* pShader);
+	virtual void SetPos(float x, float y, float z);
 	virtual void Animate(float fTimeElapsed);
 	virtual void OnPrepareRender();
 	virtual void Update();
