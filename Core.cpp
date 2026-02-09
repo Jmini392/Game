@@ -108,7 +108,9 @@ void Core::Progress()
 {
 	TimeMgr::Instance()->Update();
 	KeyMgr::Instance()->Update();
-	SceneMgr::Instance()->Update();
+
+	float fTimeElapsed = TimeMgr::Instance()->getfDT();
+	SceneMgr::Instance()->Update(fTimeElapsed);
 
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();

@@ -45,10 +45,6 @@ void Object::OnPrepareRender()
 {
 }
 
-void Object::Update()
-{
-}
-
 void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 {
 	OnPrepareRender();
@@ -69,8 +65,9 @@ void Object::Scale(XMFLOAT3* pxmf3Scale)
 
 void Object::Move(XMFLOAT3* pxmf3Shift)
 {
-	XMMATRIX mtxTranslate = XMMatrixTranslationFromVector(XMLoadFloat3(pxmf3Shift));
-	m_xmf4x4World = Matrix4x4::Multiply(mtxTranslate, m_xmf4x4World);
+	m_xmf4x4World._41 += pxmf3Shift->x;
+	m_xmf4x4World._42 += pxmf3Shift->y;
+	m_xmf4x4World._43 += pxmf3Shift->z;
 }
 
 void Object::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)

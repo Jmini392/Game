@@ -20,7 +20,7 @@ public:
 	void SetName(const std::wstring& strName) { m_wstrName = strName; }
 	const std::wstring& GetName() { return m_wstrName; }
 
-	void Update();
+	void Update(float fTimeElapsed);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 
 	virtual void Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) = 0;
@@ -29,9 +29,7 @@ public:
 	Camera* GetCamera() { return m_pCamera; }
 
 public:
-	void AddObject(Object* obj, GROUP_TYPE type) {
-		arrObj[(UINT)type].push_back(obj);
-	}
+	void AddObject(Object* obj, GROUP_TYPE type) { arrObj[(UINT)type].push_back(obj); }
 	void SetShaderToAllObjects(Shader* pShader) {
 		for (UINT i = 0; i < (UINT)GROUP_TYPE::END; ++i) {
 			for (size_t j = 0; j < arrObj[i].size(); ++j) {

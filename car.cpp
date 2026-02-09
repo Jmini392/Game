@@ -26,3 +26,22 @@ Car::~Car()
 		m_pCarMesh = NULL;
 	}
 }
+
+void Car::Animate(float fTimeElapsed)
+{
+	rotateCar(fTimeElapsed);
+	MoveCar(fTimeElapsed);
+}
+
+void Car::rotateCar(float fTimeElapsed)
+{
+	XMFLOAT3 ro = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	Rotate(&ro, m_fRotationSpeed * fTimeElapsed);
+}
+
+void Car::MoveCar(float fTimeElapsed)
+{
+	XMFLOAT3 shift = XMFLOAT3(0.0f, 0.0f, m_fMoveSpeed * fTimeElapsed);
+	Move(&shift);
+
+}

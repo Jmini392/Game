@@ -22,11 +22,11 @@ Scene::~Scene()
 	}
 }
 
-void Scene::Update()
+void Scene::Update(float fTimeElapsed)
 {
 	for (UINT i = 0; i < (UINT)GROUP_TYPE::END; ++i) {
 		for (size_t j = 0; j < arrObj[i].size(); ++j) {
-			arrObj[i][j]->Update();
+			arrObj[i][j]->Animate(fTimeElapsed);
 		}
 	}
 }

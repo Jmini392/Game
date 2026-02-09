@@ -27,9 +27,9 @@ void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCom
 	currScene->Enter(pd3dDevice, pd3dCommandList);
 }
 
-void SceneMgr::Update()
+void SceneMgr::Update(float fTimeElapesd)
 {
-	currScene->Update();
+	currScene->Update(fTimeElapesd);
 }
 
 void SceneMgr::Render(ID3D12GraphicsCommandList* pd3dCommandList)
