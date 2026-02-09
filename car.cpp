@@ -30,7 +30,7 @@ Car::~Car()
 void Car::Animate(float fTimeElapsed)
 {
 	rotateCar(fTimeElapsed);
-	MoveCar(fTimeElapsed);
+	// MoveCar(fTimeElapsed);
 }
 
 void Car::rotateCar(float fTimeElapsed)

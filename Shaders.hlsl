@@ -58,8 +58,7 @@ VS_OUTPUT VSDiffused(VS_INPUT input)
 //픽셀 셰이더를 정의한다. 
 float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
 {
-    /*
-    디버그: 노멀을 색상으로 출력
+    // 디버그: 노멀을 색상으로 출력
     // return float4(input.normal * 0.5f + 0.5f, 1.0f);
     
     // 디버그: 버텍스 컬러만 출력
@@ -67,7 +66,6 @@ float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
     
     // 조명이 제대로 들어오는지 확인
     // return float4(gLightColor.rgb, 1.0f);
-    */
     
     // Ambient 조명 계산
     float ambientIntensity = 0.3f;

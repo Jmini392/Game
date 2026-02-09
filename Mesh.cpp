@@ -64,15 +64,62 @@ Mesh::Mesh(ID3D12Device* pd3dDevice,
             std::vector<UINT> faceIndices;
 
             while (ss >> vertexStr) {
-                UINT v = 0, vt = 0, vn = 0;
+                int v = 0, vt = 0, vn = 0;
 
-                // v/vt/vn 형식 파싱
-                sscanf_s(vertexStr.c_str(), "%d/%d/%d", &v, &vt, &vn);
+                // OBJ 형식 파싱: v, v/vt, v/vt/vn, v//vn
+                size_t slash1 = vertexStr.find('/');
+                if (slash1 == std::string::npos) {
+                    // "v" 형식
+                    v = std::stoi(vertexStr);
+                }
+                else {
+                    size_t slash2 = vertexStr.find('/', slash1 + 1);
+
+                    // 첫 번째 인덱스 (위치)
+                    v = std::stoi(vertexStr.substr(0, slash1));
+
+                    if (slash2 == std::string::npos) {
+                        // "v/vt" 형식
+                        vt = std::stoi(vertexStr.substr(slash1 + 1));
+                    }
+                    else {
+                        // "v/vt/vn" 또는 "v//vn" 형식
+                        if (slash2 > slash1 + 1) {
+                            // "v/vt/vn"
+                            vt = std::stoi(vertexStr.substr(slash1 + 1, slash2 - slash1 - 1));
+                        }
+                        // 노멀 인덱스
+                        vn = std::stoi(vertexStr.substr(slash2 + 1));
+                    }
+                }
 
                 Vertex vertex;
-                vertex.m_xmf3Position = positions[v - 1];
-                vertex.m_xmf2UV = (vt > 0) ? uvs[vt - 1] : XMFLOAT2(0.0f, 0.0f);
-                vertex.m_xmf3Normal = (vn > 0) ? normals[vn - 1] : XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+                // 위치 (필수)
+                if (v > 0 && v <= (int)positions.size()) {
+                    vertex.m_xmf3Position = positions[v - 1];
+                }
+                else {
+                    vertex.m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+                }
+
+                // UV (선택)
+                if (vt > 0 && vt <= (int)uvs.size()) {
+                    vertex.m_xmf2UV = uvs[vt - 1];
+                }
+                else {
+                    vertex.m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+                }
+
+                // 노멀 (선택)
+                if (vn > 0 && vn <= (int)normals.size()) {
+                    vertex.m_xmf3Normal = normals[vn - 1];
+                }
+                else {
+                    // 노멀이 없으면 나중에 계산
+                    vertex.m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+                }
+
                 vertex.m_xmf4Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
                 vertices.push_back(vertex);
@@ -89,6 +136,50 @@ Mesh::Mesh(ID3D12Device* pd3dDevice,
     }
 
     file.close();
+
+    // ========================
+    // 노멀이 없는 정점 처리
+    // ========================
+    bool hasNormals = false;
+    for (const auto& v : vertices) {
+        if (v.m_xmf3Normal.x != 0.0f || v.m_xmf3Normal.y != 0.0f || v.m_xmf3Normal.z != 0.0f) {
+            hasNormals = true;
+            break;
+        }
+    }
+
+    if (!hasNormals && !indices.empty()) {
+        // 노멀 계산: 각 삼각형의 면 노멀을 정점에 누적
+        std::vector<XMFLOAT3> vertexNormals(vertices.size(), XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            UINT i0 = indices[i];
+            UINT i1 = indices[i + 1];
+            UINT i2 = indices[i + 2];
+
+            XMVECTOR v0 = XMLoadFloat3(&vertices[i0].m_xmf3Position);
+            XMVECTOR v1 = XMLoadFloat3(&vertices[i1].m_xmf3Position);
+            XMVECTOR v2 = XMLoadFloat3(&vertices[i2].m_xmf3Position);
+
+            XMVECTOR edge1 = XMVectorSubtract(v1, v0);
+            XMVECTOR edge2 = XMVectorSubtract(v2, v0);
+            XMVECTOR faceNormal = XMVector3Cross(edge1, edge2);
+
+            XMFLOAT3 fn;
+            XMStoreFloat3(&fn, faceNormal);
+
+            vertexNormals[i0].x += fn.x; vertexNormals[i0].y += fn.y; vertexNormals[i0].z += fn.z;
+            vertexNormals[i1].x += fn.x; vertexNormals[i1].y += fn.y; vertexNormals[i1].z += fn.z;
+            vertexNormals[i2].x += fn.x; vertexNormals[i2].y += fn.y; vertexNormals[i2].z += fn.z;
+        }
+
+        // 정규화
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            XMVECTOR n = XMLoadFloat3(&vertexNormals[i]);
+            n = XMVector3Normalize(n);
+            XMStoreFloat3(&vertices[i].m_xmf3Normal, n);
+        }
+    }
 
     // ========================
     // Vertex Buffer
