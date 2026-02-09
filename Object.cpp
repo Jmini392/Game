@@ -16,6 +16,7 @@ Object::~Object()
 		m_pShader->ReleaseShaderVariables();
 		m_pShader->Release();
 	}
+	if (m_ppStaticMeshes) delete[] m_ppStaticMeshes;
 }
 
 void Object::SetShader(Shader* pShader)
@@ -55,6 +56,14 @@ void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 		m_pShader->Render(pd3dCommandList, pCamera);
 	}
 	if (m_pMesh) m_pMesh->Render(pd3dCommandList);
+}
+
+void Object::DeleteMesh()
+{
+	if (m_ppStaticMeshes && *m_ppStaticMeshes) {
+		delete* m_ppStaticMeshes;
+		*m_ppStaticMeshes = NULL;
+	}
 }
 
 void Object::Scale(XMFLOAT3* pxmf3Scale)

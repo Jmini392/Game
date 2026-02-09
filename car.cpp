@@ -2,15 +2,14 @@
 #include "car.h"
 
 Mesh*	Car::m_pCarMesh = NULL;
-int		Car::m_nReferences = 0;
 
 Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT3 pos, XMFLOAT3 scale)
 {
+	m_ppStaticMeshes = &m_pCarMesh;
 	if (m_pCarMesh == NULL)
 	{
 		m_pCarMesh = new Mesh(pd3dDevice, pd3dCommandList, "Res/attack.obj");
 	}
-	m_nReferences++;
 	SetMesh(m_pCarMesh);
 	Move(&pos);
 	Scale(&scale);
@@ -20,11 +19,6 @@ Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, X
 
 Car::~Car()
 {
-	if (--m_nReferences == 0)
-	{
-		if (m_pCarMesh) delete m_pCarMesh;
-		m_pCarMesh = NULL;
-	}
 }
 
 void Car::Animate(float fTimeElapsed)
