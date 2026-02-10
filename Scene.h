@@ -30,7 +30,7 @@ public:
 
 	Camera* GetCamera() { return m_pCamera; }
 	Light* GetLight() { return m_pLight; }
-
+	 
 public:
 	void AddObject(Object* obj, GROUP_TYPE type) { arrObj[(UINT)type].push_back(obj); }
 	void SetShaderToAllObjects(Shader* pShader) {
