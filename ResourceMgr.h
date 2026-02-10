@@ -6,7 +6,7 @@
 #include <string>
 
 class Mesh; // 전방 선언
-class Texture; // 전방 선언
+// class Texture; // 전방 선언
 
 class ResourceMgr
 {
@@ -16,7 +16,7 @@ private:
 
 	// Key - 리소스 식별자, Value - 리소스 포인터
 	std::map<std::wstring, Mesh*> m_mapMesh;
-	std::map<std::wstring, Texture*> m_mapTexture;
+	// std::map<std::wstring, Texture*> m_mapTexture;
 public:
 	void Init();
 	Mesh* LoadMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::wstring& _strKey, const std::string& _strRelativePath);
