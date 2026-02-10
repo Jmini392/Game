@@ -16,6 +16,7 @@
 #include <tchar.h>
 #include <vector>
 #include <cmath>
+#include <fbxsdk.h>
 
 #include <string>
 #include <wrl.h>
