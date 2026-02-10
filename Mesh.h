@@ -1,8 +1,41 @@
 #pragma once
+
+//정점을 표현하기 위한 클래스를 선언한다. 
+class Vertex
+{
+public:
+	//정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다).
+	XMFLOAT3 m_xmf3Position;
+	XMFLOAT3 m_xmf3Normal;
+	XMFLOAT2 m_xmf2UV;
+	XMFLOAT4 m_xmf4Diffuse;
+public:
+	Vertex() {
+		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	Vertex(XMFLOAT3 xmf3Position) {
+		m_xmf3Position = xmf3Position;
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	Vertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse, XMFLOAT3 xmfNormal = XMFLOAT3(0, 0, 0)) {
+		m_xmf3Position = xmf3Position;
+		m_xmf3Normal = xmfNormal;
+		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
+		m_xmf4Diffuse = xmf4Diffuse;
+	}
+	~Vertex() {}
+};
+
 class Mesh
 {
 public:
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pVertices, UINT nVertices, void* pIndices, UINT nIndices);
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile);
 	virtual ~Mesh();
 private:
@@ -36,36 +69,6 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 };
 
-//정점을 표현하기 위한 클래스를 선언한다. 
-class Vertex
-{
-public:
-	//정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다).
-	XMFLOAT3 m_xmf3Position;
-	XMFLOAT3 m_xmf3Normal;
-	XMFLOAT2 m_xmf2UV;
-	XMFLOAT4 m_xmf4Diffuse;
-public:
-	Vertex() { 
-		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); 
-		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
-		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	}
-	Vertex(XMFLOAT3 xmf3Position) { 
-		m_xmf3Position = xmf3Position; 
-		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
-		m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	}
-	Vertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse, XMFLOAT3 xmfNormal = XMFLOAT3(0,0,0)) {
-		m_xmf3Position = xmf3Position;
-		m_xmf3Normal = xmfNormal;
-		m_xmf2UV = XMFLOAT2(0.0f, 0.0f);
-		m_xmf4Diffuse = xmf4Diffuse;
-	}
-	~Vertex() {}
-};
 
 class GroundMesh : public Mesh
 {

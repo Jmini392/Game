@@ -16,14 +16,19 @@
 #include <tchar.h>
 #include <vector>
 #include <cmath>
+
+// FBX SDK 헤더 파일
 #include <fbxsdk.h>
 
+// C++ 표준 라이브러리 헤더 파일
 #include <string>
 #include <wrl.h>
 #include <shellapi.h>
 
+// DirectX 헤더 파일
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include <d3dx12.h>
 
 #include <D3Dcompiler.h>
 
@@ -39,11 +44,17 @@ using namespace DirectX::PackedVector;
 
 using Microsoft::WRL::ComPtr;
 
+// 링커에 필요한 라이브러리 링크
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
 #pragma comment(lib, "dxguid.lib")
+
+// FBX SDK 라이브러리 링크
+#pragma comment(lib, "libfbxsdk-md.lib")
+#pragma comment(lib, "libxml2-md.lib")
+#pragma comment(lib, "zlib-md.lib")
 
 #define FRAME_BUFFER_WIDTH 800
 #define FRAME_BUFFER_HEIGHT 600

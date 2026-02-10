@@ -8,6 +8,28 @@ Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 
 Mesh::Mesh(ID3D12Device* pd3dDevice,
     ID3D12GraphicsCommandList* pd3dCommandList,
+    void* pVertices, UINT nVertices,
+    void* pIndices, UINT nIndices)
+{
+    m_nIndices = nVertices;
+
+    m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, sizeof(Vertex) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+
+    m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+    m_d3dVertexBufferView.StrideInBytes = sizeof(Vertex);
+    m_d3dVertexBufferView.SizeInBytes = sizeof(Vertex) * m_nIndices;
+
+    m_nIndices = nIndices;
+
+    m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pIndices, sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+
+    m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+    m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+    m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+}
+
+Mesh::Mesh(ID3D12Device* pd3dDevice,
+    ID3D12GraphicsCommandList* pd3dCommandList,
     std::string MeshFile)
 {
     std::ifstream file(MeshFile);
