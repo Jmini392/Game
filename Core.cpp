@@ -135,7 +135,7 @@ void Core::Progress()
 		m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, FALSE,
 		&d3dDsvCPUDescriptorHandle);
-	float pfClearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float pfClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor, 0,
 		NULL);
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle,

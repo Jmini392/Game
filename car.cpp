@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "car.h"
-
+#include "ResourceMgr.h"
 Mesh*	Car::m_pCarMesh = NULL;
 
 Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT3 pos, XMFLOAT3 scale)
@@ -8,7 +8,7 @@ Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, X
 	m_ppStaticMeshes = &m_pCarMesh;
 	if (m_pCarMesh == NULL)
 	{
-		m_pCarMesh = new Mesh(pd3dDevice, pd3dCommandList, "Res/attack.obj");
+		m_pCarMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"milk", "Res/Meshes/milk.fbx");
 	}
 	SetMesh(m_pCarMesh);
 	Move(&pos);

@@ -19,8 +19,8 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 		m_pCamera->GenerateProjectionMatrix(1.0f, 500.0f, ASPECT_RATIO, 90.0f);
 		m_pCamera->GenerateViewMatrix(
-			XMFLOAT3(0.0f, 70.0f, -100.0f),
-			XMFLOAT3(0.0f, 50.0f, 50.0f),
+			XMFLOAT3(0.0f, 50.0f, -100.0f),
+			XMFLOAT3(0.0f, 0.0f, 0.0f),
 			XMFLOAT3(0.0f, 1.0f, 0.0f)
 		);
 	}
@@ -31,12 +31,12 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pLight->SetLightDirection(XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f)); // 위→아래 방향광
 	}
 
-	Ground* ground = new Ground(pd3dDevice, pd3dCommandList, 250, 10000);
+	Ground* ground = new Ground(pd3dDevice, pd3dCommandList);
 
 	Car* car = new Car(pd3dDevice, pd3dCommandList, XMFLOAT3(0.0f, 10.0f, 10.0f), XMFLOAT3(10,10,10));
 
 	
-	AddObject(ground, GROUP_TYPE::TEST);
+	// AddObject(ground, GROUP_TYPE::TEST);
 
 	AddObject(car, GROUP_TYPE::TEST);
 

@@ -11,13 +11,13 @@ Mesh::Mesh(ID3D12Device* pd3dDevice,
     void* pVertices, UINT nVertices,
     void* pIndices, UINT nIndices)
 {
-    m_nIndices = nVertices;
+    m_nVertices = nVertices;
 
-    m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, sizeof(Vertex) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+    m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, sizeof(Vertex) * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
 
     m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
     m_d3dVertexBufferView.StrideInBytes = sizeof(Vertex);
-    m_d3dVertexBufferView.SizeInBytes = sizeof(Vertex) * m_nIndices;
+    m_d3dVertexBufferView.SizeInBytes = sizeof(Vertex) * m_nVertices;
 
     m_nIndices = nIndices;
 
