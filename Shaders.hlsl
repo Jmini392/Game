@@ -49,6 +49,7 @@ VS_OUTPUT VSDiffused(VS_INPUT input)
     
     // 노멀을 월드 공간으로 변환
     output.normal = normalize(mul(input.normal, (float3x3) gmtxWorld));
+   
     
     output.texcoord = input.texcoord;
     output.color = input.color;

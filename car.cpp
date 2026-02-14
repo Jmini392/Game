@@ -8,7 +8,7 @@ Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, X
 	m_ppStaticMeshes = &m_pCarMesh;
 	if (m_pCarMesh == NULL)
 	{
-		m_pCarMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"milk", "Res/Meshes/milk.fbx");
+		m_pCarMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"milk", L"Res/Meshes/milk.fbx");
 	}
 	SetMesh(m_pCarMesh);
 	Move(&pos);

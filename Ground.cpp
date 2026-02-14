@@ -8,7 +8,7 @@ Ground::Ground(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandL
 	m_ppStaticMeshes = &m_pGroundMesh;
 	if (m_pGroundMesh == NULL)
 	{
-		m_pGroundMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"Ground", "Res/Meshes/Ground.fbx");
+		m_pGroundMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"Ground", L"Res/Meshes/Ground.fbx");
 	}
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 20.0f, 0.0f), scale = XMFLOAT3(20.0f, 20.0f, 20.0f);
 	float rotate_angle = 90.0f;

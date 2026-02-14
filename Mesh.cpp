@@ -6,22 +6,44 @@ Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
-Mesh::Mesh(ID3D12Device* pd3dDevice,
-    ID3D12GraphicsCommandList* pd3dCommandList,
-    void* pVertices, UINT nVertices,
-    void* pIndices, UINT nIndices)
+Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+    const std::vector<Vertex>& vertices, const std::vector<UINT>& indices)
 {
-    m_nVertices = nVertices;
+    // ========================
+    // Vertex Buffer
+    // ========================
+    m_nVertices = (UINT)vertices.size();
+    m_nStride = sizeof(Vertex);
+    m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-    m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, sizeof(Vertex) * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+    m_pd3dVertexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        (void*)vertices.data(),
+        m_nStride * m_nVertices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+        &m_pd3dVertexUploadBuffer
+    );
 
     m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
-    m_d3dVertexBufferView.StrideInBytes = sizeof(Vertex);
-    m_d3dVertexBufferView.SizeInBytes = sizeof(Vertex) * m_nVertices;
+    m_d3dVertexBufferView.StrideInBytes = m_nStride;
+    m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
 
-    m_nIndices = nIndices;
+    // ========================
+    // Index Buffer
+    // ========================
+    m_nIndices = (UINT)indices.size();
 
-    m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pIndices, sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+    m_pd3dIndexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        (void*)indices.data(),
+        sizeof(UINT) * m_nIndices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_INDEX_BUFFER,
+        &m_pd3dIndexUploadBuffer
+    );
 
     m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
     m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
@@ -30,7 +52,7 @@ Mesh::Mesh(ID3D12Device* pd3dDevice,
 
 Mesh::Mesh(ID3D12Device* pd3dDevice,
     ID3D12GraphicsCommandList* pd3dCommandList,
-    std::string MeshFile)
+    std::string MeshFile, int obj)
 {
     std::ifstream file(MeshFile);
     if (!file.is_open()) {

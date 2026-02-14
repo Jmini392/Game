@@ -1,207 +1,144 @@
 #include "stdafx.h"
 #include "ResourceMgr.h"
-#include "Mesh.h"
+#include <locale>
 #include <codecvt>
-#include <functional>
 
-ResourceMgr::ResourceMgr() : m_pFbxManager(nullptr) {}
+
+ResourceMgr::ResourceMgr() {}
+
 ResourceMgr::~ResourceMgr() {
-	if (m_pFbxManager) m_pFbxManager->Destroy();
-
+	Release();
 	for (auto& m : m_mapMesh) {
 		m.second->Release();
 	}
 }
 
-void ResourceMgr::Init()
-{
-	// FBX 매니저 생성
-	m_pFbxManager = FbxManager::Create();
-	FbxIOSettings* pIOSettings = FbxIOSettings::Create(m_pFbxManager, IOSROOT);
-	m_pFbxManager->SetIOSettings(pIOSettings);
+void ResourceMgr::Release() {
+	for (auto& pair : m_mapMesh) {
+		if (pair.second) {
+			pair.second->Release();
+		}
+	}
+	m_mapMesh.clear();
 }
 
-Mesh* ResourceMgr::LoadMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,const std::wstring& _strKey, const std::string& _strRelativePath)
+Mesh* ResourceMgr::FindMesh(const std::wstring& strKey) {
+	auto iter = m_mapMesh.find(strKey);
+	if (iter != m_mapMesh.end()) {
+		return iter->second;
+	}
+	return nullptr;
+}
+
+Mesh* ResourceMgr::LoadMesh(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList,
+	const std::wstring& strKey,
+	const std::wstring& strRelativePath)
 {
-	// 이미 로드된 리소스인지 확인
-	auto it = m_mapMesh.find(_strKey);
-	if (it != m_mapMesh.end())
-	{
-		return it->second; // 이미 로드된 리소스 반환
+	// 1. 캐시에서 먼저 찾기
+	Mesh* pMesh = FindMesh(strKey);
+	if (pMesh != nullptr) {
+		return pMesh;
 	}
-	
-	// FBX 파일 로드 및 파싱
-	FbxImporter* pImporter = FbxImporter::Create(m_pFbxManager, "");
 
-	if (!pImporter->Initialize(_strRelativePath.c_str(), -1, m_pFbxManager->GetIOSettings()))
-	{
-		pImporter->Destroy();
-		return nullptr;
-	}
-	
-	FbxScene* pScene = FbxScene::Create(m_pFbxManager, "myScene");
-	pImporter->Import(pScene);
-	pImporter->Destroy();
+	// 2. wstring -> string 변환 (Assimp는 std::string 사용)
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	std::string filePath = converter.to_bytes(strRelativePath);
 
-	FbxNode* pRootNode = pScene->GetRootNode();
-	std::vector<FbxNode*> vecMeshNodes;
+	// 3. Assimp Importer 생성 및 파일 로드
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(filePath,
+		aiProcess_Triangulate |           // 삼각형으로 변환
+		aiProcess_GenNormals |            // 노말 생성
+		aiProcess_FlipUVs |               // UV 뒤집기 (DirectX용)
+		aiProcess_CalcTangentSpace |      // 탄젠트 계산
+		aiProcess_JoinIdenticalVertices   // 동일 정점 병합
+	);
 
-	// 씬의 모든 노드를 순회하며 메쉬 노드만 수집
-	std::function<void(FbxNode*)> Traverse =
-		[&](FbxNode* _pNode)
-		{
-			if (_pNode->GetNodeAttribute() && _pNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
-			{
-				vecMeshNodes.push_back(_pNode);
-			}
-
-			for (int i = 0; i < _pNode->GetChildCount(); ++i)
-			{
-				Traverse(_pNode->GetChild(i));
-			}
-		};
-
-	Traverse(pRootNode);
-
-	if (vecMeshNodes.empty())
-	{
-		pScene->Destroy();
+	// 4. 로드 실패 체크
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		OutputDebugStringA("Assimp Error: ");
+		OutputDebugStringA(importer.GetErrorString());
+		OutputDebugStringA("\n");
 		return nullptr;
 	}
 
-	FbxMesh* pFbxMesh = (FbxMesh*)vecMeshNodes[0]->GetNodeAttribute();
+	// 5. 정점 및 인덱스 데이터 추출
+	std::vector<Vertex> vertices;
+	std::vector<UINT> indices;
+	ProcessNode(scene->mRootNode, scene, vertices, indices);
 
-	// 정점 위치 데이터 추출
-	FbxVector4* pCtrlPoints = pFbxMesh->GetControlPoints();
-	int iVtxCount = pFbxMesh->GetControlPointsCount();
-	std::vector<Vertex> vecVtx(iVtxCount);
+	// 6. 메쉬 생성 (Mesh 클래스에 새 생성자 필요)
+	pMesh = new Mesh(pd3dDevice, pd3dCommandList, vertices, indices);
+	pMesh->AddRef();
 
-	for (int i = 0; i < iVtxCount; ++i)
-	{
-		vecVtx[i].m_xmf3Position = XMFLOAT3(
-			(float)pCtrlPoints[i][0], 
-			(float)pCtrlPoints[i][2], 
-			-(float)pCtrlPoints[i][1]);
-		vecVtx[i].m_xmf4Diffuse = XMFLOAT4(1.f, 1.f, 1.f, 1.f); // 기본값
+	// 7. 캐시에 저장
+	m_mapMesh.insert({ strKey, pMesh });
+
+	return pMesh;
+}
+
+void ResourceMgr::ProcessNode(aiNode* node, const aiScene* scene,
+	std::vector<Vertex>& vertices, std::vector<UINT>& indices)
+{
+	// 현재 노드의 모든 메쉬 처리
+	for (UINT i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		ProcessMesh(mesh, scene, vertices, indices);
 	}
 
-	// 컬러 데이터 추출
-	FbxGeometryElementVertexColor* pColor = pFbxMesh->GetElementVertexColor(0);
-	if (pColor)
-	{
-		for (int i = 0; i < iVtxCount; ++i)
-		{
-			int iColorIdx = (pColor->GetMappingMode() == FbxLayerElement::eByControlPoint) ? i : i;
-			FbxColor color = pColor->GetDirectArray().GetAt(iColorIdx);
-			vecVtx[i].m_xmf4Diffuse = XMFLOAT4((float)color.mRed, (float)color.mGreen, (float)color.mBlue, (float)color.mAlpha);
+	// 자식 노드들 재귀 처리
+	for (UINT i = 0; i < node->mNumChildren; i++) {
+		ProcessNode(node->mChildren[i], scene, vertices, indices);
+	}
+}
+
+void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
+	std::vector<Vertex>& vertices, std::vector<UINT>& indices)
+{
+	UINT baseVertex = static_cast<UINT>(vertices.size());
+
+	// 정점 데이터 추출
+	for (UINT i = 0; i < mesh->mNumVertices; i++) {
+		Vertex vertex;
+
+		// 위치
+		vertex.m_xmf3Position.x = mesh->mVertices[i].x;
+		vertex.m_xmf3Position.y = mesh->mVertices[i].z;
+		vertex.m_xmf3Position.z = -mesh->mVertices[i].y;
+
+		// 노말
+		if (mesh->HasNormals()) {
+			vertex.m_xmf3Normal.x = mesh->mNormals[i].x;
+			vertex.m_xmf3Normal.y = mesh->mNormals[i].z;
+			vertex.m_xmf3Normal.z = -mesh->mNormals[i].y;
 		}
+
+		// UV 좌표 (첫 번째 UV 채널만 사용)
+		if (mesh->mTextureCoords[0]) {
+			vertex.m_xmf2UV.x = mesh->mTextureCoords[0][i].x;
+			vertex.m_xmf2UV.y = mesh->mTextureCoords[0][i].y;
+		}
+
+		// 색상 (있는 경우)
+		if (mesh->HasVertexColors(0)) {
+			vertex.m_xmf4Diffuse.x = mesh->mColors[0][i].r;
+			vertex.m_xmf4Diffuse.y = mesh->mColors[0][i].g;
+			vertex.m_xmf4Diffuse.z = mesh->mColors[0][i].b;
+			vertex.m_xmf4Diffuse.w = mesh->mColors[0][i].a;
+		}
+		else {
+			vertex.m_xmf4Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		vertices.push_back(vertex);
 	}
 
-	// UV 데이터 추출
-	FbxGeometryElementUV* pUV = pFbxMesh->GetElementUV(0);
-	if (pUV)
-	{
-		for (int i = 0; i < iVtxCount; ++i)
-		{
-			int iUVIdx = (pUV->GetMappingMode() == FbxLayerElement::eByControlPoint) ? i : i;
-			FbxVector2 uv = pUV->GetDirectArray().GetAt(iUVIdx);
-			vecVtx[i].m_xmf2UV = XMFLOAT2((float)uv[0], 1.f - (float)uv[1]);
+	// 인덱스 데이터 추출
+	for (UINT i = 0; i < mesh->mNumFaces; i++) {
+		aiFace face = mesh->mFaces[i];
+		for (UINT j = 0; j < face.mNumIndices; j++) {
+			indices.push_back(baseVertex + face.mIndices[j]);
 		}
 	}
-
-	// 노멀 데이터 추출 - Face-Vertex 인덱싱 고려
-	FbxGeometryElementNormal* pNormal = pFbxMesh->GetElementNormal(0);
-	if (pNormal)
-	{
-		FbxLayerElement::EMappingMode mappingMode = pNormal->GetMappingMode();
-		
-		if (mappingMode == FbxLayerElement::eByControlPoint)
-		{
-			// 정점 기반 노멀
-			for (int i = 0; i < iVtxCount; ++i)
-			{
-				FbxVector4 normal = pNormal->GetDirectArray().GetAt(i);
-				vecVtx[i].m_xmf3Normal = XMFLOAT3(
-					(float)normal[0],
-					(float)normal[2],
-					-(float)normal[1]
-				);
-			}
-		}
-		else if (mappingMode == FbxLayerElement::eByPolygonVertex)
-		{
-			// Face-Vertex 인덱싱 - 인덱스 배열에서 노멀 읽기
-			std::vector<XMFLOAT3> faceVertexNormals;
-			int normalCount = pNormal->GetDirectArray().GetCount();
-			
-			for (int i = 0; i < normalCount; ++i)
-			{
-				FbxVector4 normal = pNormal->GetDirectArray().GetAt(i);
-				faceVertexNormals.push_back(XMFLOAT3(
-					(float)normal[0],
-					(float)normal[2],
-					-(float)normal[1]
-				));
-			}
-			
-			// 인덱스 배열이 있으면 사용, 없으면 직접 인덱스
-			int vertexId = 0;
-			int iPolyCount = pFbxMesh->GetPolygonCount();
-			
-			for (int polyIdx = 0; polyIdx < iPolyCount; ++polyIdx)
-			{
-				int polySize = pFbxMesh->GetPolygonSize(polyIdx);
-				
-				for (int vertIdx = 0; vertIdx < polySize; ++vertIdx)
-				{
-					int ctrlPointIdx = pFbxMesh->GetPolygonVertex(polyIdx, vertIdx);
-					
-					// 노멀 인덱스 가져오기
-					int normalIdx = pNormal->GetIndexArray().GetAt(vertexId);
-					if (normalIdx >= 0 && normalIdx < (int)faceVertexNormals.size())
-					{
-						vecVtx[ctrlPointIdx].m_xmf3Normal = faceVertexNormals[normalIdx];
-					}
-					vertexId++;
-				}
-			}
-		}
-	}
-
-	// 인덱스 데이터 추출 (면 기반으로 정확히 읽기)
-	std::vector<UINT> vecIdx;
-	int iPolyCount = pFbxMesh->GetPolygonCount();
-	
-	for (int i = 0; i < iPolyCount; ++i)
-	{
-		int iPolySize = pFbxMesh->GetPolygonSize(i);  // 다각형의 정점 개수 확인
-		
-		// 사각형(4개)인 경우 삼각형 2개로 변환
-		if (iPolySize == 4)
-		{
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 0));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 1));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 2));
-			
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 0));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 2));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 3));
-		}
-		// 삼각형(3개)인 경우 그대로 추가
-		else if (iPolySize == 3)
-		{
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 0));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 1));
-			vecIdx.push_back(pFbxMesh->GetPolygonVertex(i, 2));
-		}
-	}
-
-	// 메쉬 생성 및 저장
-	Mesh* pNewMesh = new Mesh(pd3dDevice, pd3dCommandList, vecVtx.data(), (UINT)vecVtx.size(), vecIdx.data(), (UINT)vecIdx.size());
-	pNewMesh->AddRef();
-	m_mapMesh.insert(std::make_pair(_strKey, pNewMesh));
-
-	pScene->Destroy();
-
-	return pNewMesh;
 }

@@ -1,5 +1,4 @@
 #pragma once
-
 //정점을 표현하기 위한 클래스를 선언한다. 
 class Vertex
 {
@@ -35,8 +34,9 @@ class Mesh
 {
 public:
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pVertices, UINT nVertices, void* pIndices, UINT nIndices);
-	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile);
+	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+		const std::vector<Vertex>& vertices, const std::vector<UINT>& indices);
+	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile, int obj);
 	virtual ~Mesh();
 private:
 	int m_nReferences = 0;
@@ -76,3 +76,4 @@ public:
 	GroundMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth, float fHeight);
 	virtual ~GroundMesh();
 };
+

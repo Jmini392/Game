@@ -62,7 +62,6 @@ int Core::Init(HWND handle, HINSTANCE hInstance)
 	//Manager
 	TimeMgr::Instance()->Init();
 	KeyMgr::Instance()->Init();
-	ResourceMgr::Instance()->Init();
 
 	// 객체 생성 Commandlist 설정
 	BuildObjects();

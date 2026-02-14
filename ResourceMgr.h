@@ -1,25 +1,34 @@
 #pragma once
-// 리소스 로드 및 파싱
-// 리소스 캐싱
-// 리소스 생명주기 관리
 #include <map>
 #include <string>
-
-class Mesh; // 전방 선언
-// class Texture; // 전방 선언
+#include <vector>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "Mesh.h"
 
 class ResourceMgr
 {
 	SINGLE(ResourceMgr);
 private:
-	FbxManager* m_pFbxManager;
-
-	// Key - 리소스 식별자, Value - 리소스 포인터
 	std::map<std::wstring, Mesh*> m_mapMesh;
-	// std::map<std::wstring, Texture*> m_mapTexture;
+	
+	// Assimp로부터 메쉬 데이터 추출
+	void ProcessNode(aiNode* node, const aiScene* scene, 
+		std::vector<Vertex>& vertices, std::vector<UINT>& indices);
+	void ProcessMesh(aiMesh* mesh, const aiScene* scene,
+		std::vector<Vertex>& vertices, std::vector<UINT>& indices);
+
 public:
-	void Init();
-	Mesh* LoadMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::wstring& _strKey, const std::string& _strRelativePath);
-	// Texture* LoadTexture(const std::wstring& _strKey, const std::string& _strRelativePath);
+	void Release();
+	
+	// 메쉬 로드 (캐싱 지원)
+	Mesh* LoadMesh(ID3D12Device* pd3dDevice, 
+		ID3D12GraphicsCommandList* pd3dCommandList, 
+		const std::wstring& strKey, 
+		const std::wstring& strRelativePath);
+	
+	// 캐시에서 메쉬 찾기
+	Mesh* FindMesh(const std::wstring& strKey);
 };
 

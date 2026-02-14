@@ -17,9 +17,6 @@
 #include <vector>
 #include <cmath>
 
-// FBX SDK 헤더 파일
-#include <fbxsdk.h>
-
 // C++ 표준 라이브러리 헤더 파일
 #include <string>
 #include <wrl.h>
@@ -50,11 +47,6 @@ using Microsoft::WRL::ComPtr;
 #pragma comment(lib, "dxgi.lib")
 
 #pragma comment(lib, "dxguid.lib")
-
-// FBX SDK 라이브러리 링크
-#pragma comment(lib, "libfbxsdk-md.lib")
-#pragma comment(lib, "libxml2-md.lib")
-#pragma comment(lib, "zlib-md.lib")
 
 #define FRAME_BUFFER_WIDTH 800
 #define FRAME_BUFFER_HEIGHT 600
