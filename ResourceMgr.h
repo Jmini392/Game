@@ -18,16 +18,17 @@ private:
 		std::vector<Vertex>& vertices, std::vector<UINT>& indices);
 	void ProcessMesh(aiMesh* mesh, const aiScene* scene,
 		std::vector<Vertex>& vertices, std::vector<UINT>& indices);
+	Material ProcessMaterial(aiMaterial* material);
 
 public:
 	void Release();
+
 	
 	// 메쉬 로드 (캐싱 지원)
 	Mesh* LoadMesh(ID3D12Device* pd3dDevice, 
 		ID3D12GraphicsCommandList* pd3dCommandList, 
 		const std::wstring& strKey, 
 		const std::wstring& strRelativePath);
-	
 	// 캐시에서 메쉬 찾기
 	Mesh* FindMesh(const std::wstring& strKey);
 };

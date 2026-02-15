@@ -72,6 +72,11 @@ Mesh* ResourceMgr::LoadMesh(ID3D12Device* pd3dDevice,
 	pMesh = new Mesh(pd3dDevice, pd3dCommandList, vertices, indices);
 	pMesh->AddRef();
 
+	if (scene->mNumMaterials > 0) {
+		Material mat = ProcessMaterial(scene->mMaterials[0]);
+		pMesh->SetMaterial(mat);
+	}
+
 	// 7. 캐시에 저장
 	m_mapMesh.insert({ strKey, pMesh });
 
@@ -141,4 +146,40 @@ void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
 			indices.push_back(baseVertex + face.mIndices[j]);
 		}
 	}
+}
+
+// 재질 추출 함수 구현
+Material ResourceMgr::ProcessMaterial(aiMaterial* material)
+{
+	Material mat;
+
+	aiColor4D color;
+
+	// Diffuse 색상
+	if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
+		mat.Diffuse = XMFLOAT4(color.r, color.g, color.b, color.a);
+	}
+
+	// Ambient 색상
+	if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_AMBIENT, color)) {
+		mat.Ambient = XMFLOAT4(color.r, color.g, color.b, color.a);
+	}
+
+	// Specular 색상
+	if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_SPECULAR, color)) {
+		mat.Specular = XMFLOAT4(color.r, color.g, color.b, mat.Specular.w);
+	}
+
+	// Shininess (광택)
+	float shininess = 1.0f;
+	if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess)) {
+		mat.Specular.w = shininess;
+	}
+
+	// Emissive 색상
+	if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_EMISSIVE, color)) {
+		mat.Emissive = XMFLOAT4(color.r, color.g, color.b, color.a);
+	}
+
+	return mat;
 }

@@ -19,7 +19,7 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 		m_pCamera->GenerateProjectionMatrix(1.0f, 500.0f, ASPECT_RATIO, 90.0f);
 		m_pCamera->GenerateViewMatrix(
-			XMFLOAT3(0.0f, 0.0f, -100.0f),
+			XMFLOAT3(0.0f, 50.0f, -100.0f),
 			XMFLOAT3(0.0f, 0.0f, 0.0f),
 			XMFLOAT3(0.0f, 1.0f, 0.0f)
 		);

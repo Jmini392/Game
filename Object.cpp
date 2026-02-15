@@ -55,7 +55,13 @@ void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 		m_pShader->UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
 		m_pShader->Render(pd3dCommandList, pCamera);
 	}
-	if (m_pMesh) m_pMesh->Render(pd3dCommandList);
+	if (m_pMesh) {
+		Material mat = m_pMesh->GetMaterial();
+		pd3dCommandList->SetGraphicsRoot32BitConstants(3, 4, &mat.Ambient, 0);
+		pd3dCommandList->SetGraphicsRoot32BitConstants(3, 4, &mat.Diffuse, 4);
+
+		m_pMesh->Render(pd3dCommandList);
+	}
 }
 
 void Object::DeleteMesh()

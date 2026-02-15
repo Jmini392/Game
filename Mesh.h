@@ -1,4 +1,19 @@
 #pragma once
+// 재질을 표현하기 위한 구조체이다.
+struct Material
+{
+	XMFLOAT4 Ambient;
+	XMFLOAT4 Diffuse;
+	XMFLOAT4 Specular;  // w = Shininess
+	XMFLOAT4 Emissive;
+
+	Material() {
+		Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+		Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		Emissive = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+};
 //정점을 표현하기 위한 클래스를 선언한다. 
 class Vertex
 {
@@ -45,6 +60,7 @@ public:
 	void Release() { if (--m_nReferences <= 0) delete this; }
 	void ReleaseUploadBuffers();
 protected:
+	Material m_Material;
 	ID3D12Resource* m_pd3dVertexBuffer = NULL;
 	ID3D12Resource* m_pd3dVertexUploadBuffer = NULL;
 	D3D12_VERTEX_BUFFER_VIEW m_d3dVertexBufferView;
@@ -66,6 +82,8 @@ protected:
 	int m_nBaseVertex = 0;
 	//인덱스 버퍼의 인덱스에 더해질 인덱스이다. 
 public:
+	Material GetMaterial() const { return m_Material; }
+	void SetMaterial(const Material& mat) { m_Material = mat; }
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 };
 

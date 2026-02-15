@@ -17,6 +17,15 @@ struct CB_LIGHT_INFO
 	XMFLOAT4 m_xmf4LightParams;       // x: 광원 타입 (0=방향광, 1=점광원), y: 감쇠 계수, z,w: 예약
 };
 
+// 재질 정보를 셰이더에 전달하기 위한 구조체
+struct CB_MATERIAL_INFO
+{
+	XMFLOAT4 m_xmf4Ambient;
+	XMFLOAT4 m_xmf4Diffuse;
+	XMFLOAT4 m_xmf4Specular;  // w = Shininess
+	XMFLOAT4 m_xmf4Emissive;
+};
+
 class Shader
 {
 public:

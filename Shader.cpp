@@ -23,7 +23,7 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	if (s_bRootSignatureCreated) return;  // 이미 생성됨
 
 	// Root Parameter 설정
-	D3D12_ROOT_PARAMETER pd3dRootParameters[3];
+	D3D12_ROOT_PARAMETER pd3dRootParameters[4];
 
 	// Root Parameter[0]: World 행렬 (b0 레지스터)
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
@@ -41,10 +41,17 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 
 	// Root Parameter[2]: 조명 정보 (b2 레지스터) - 픽셀 셰이더에서 사용
 	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[2].Constants.Num32BitValues = 16;  // CB_LIGHT_INFO 구조체 크기 (4개의 XMFLOAT4)
+	pd3dRootParameters[2].Constants.Num32BitValues = 8;  // CB_LIGHT_INFO 구조체 크기 (4개의 XMFLOAT4)
 	pd3dRootParameters[2].Constants.ShaderRegister = 2;
 	pd3dRootParameters[2].Constants.RegisterSpace = 0;
 	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// Root Parameter[3]: 재질 정보 (b3 레지스터) - 픽셀 셰이더에서 사용
+	pd3dRootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	pd3dRootParameters[3].Constants.Num32BitValues = 8;  // CB_MATERIAL_INFO 구조체 크기 (4개의 XMFLOAT4)
+	pd3dRootParameters[3].Constants.ShaderRegister = 3;
+	pd3dRootParameters[3].Constants.RegisterSpace = 0;
+	pd3dRootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// Root Signature Flags - 이제 픽셀 셰이더도 접근 가능하도록 변경
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
@@ -69,6 +76,15 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	HRESULT hResult = ::D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
 		&pd3dSignatureBlob, &pd3dErrorBlob);
 
+	if (FAILED(hResult)) {
+		if (pd3dErrorBlob) {
+			OutputDebugStringA("루트 시그니처 직렬화 오류: ");
+			OutputDebugStringA((char*)pd3dErrorBlob->GetBufferPointer());
+			pd3dErrorBlob->Release();
+		}
+		return;  // 실패 시 플래그 설정하지 않고 반환
+	}
+
 	// Root Signature 생성
 	hResult = pd3dDevice->CreateRootSignature(0, pd3dSignatureBlob->GetBufferPointer(),
 		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature),
@@ -77,6 +93,11 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	// Blob 해제
 	if (pd3dSignatureBlob) pd3dSignatureBlob->Release();
 	if (pd3dErrorBlob) pd3dErrorBlob->Release();
+
+	if (FAILED(hResult)) {
+		OutputDebugStringA("루트 시그니처 생성 실패!\n");
+		return;  // 실패 시 플래그 설정하지 않고 반환
+	}
 
 	s_bRootSignatureCreated = true;
 }

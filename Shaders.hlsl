@@ -16,8 +16,13 @@ cbuffer cbLightInfo : register(b2)
 {
     float4 gLightColor : packoffset(c0); // 광원 색상
     float4 gLightDirection : packoffset(c1); // 광원 방향 또는 위치
-    float4 gCameraPosition : packoffset(c2); // 카메라 위치
-    float4 gLightParams : packoffset(c3); // 광원 파라미터
+};
+
+// 재질 정보를 셰이더에 전달하기 위한 구조체
+cbuffer cbMaterialInfo : register(b3)
+{
+    float4 gMatAmbient : packoffset(c0);
+    float4 gMatDiffuse : packoffset(c1);
 };
 
 //정점 셰이더의 입력을 위한 구조체를 선언한다. 
@@ -70,12 +75,12 @@ float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
     
     // Ambient 조명 계산
     float ambientIntensity = 0.3f;
-    float3 ambient = gLightColor.rgb * ambientIntensity;
+    float3 ambient = gLightColor.rgb * ambientIntensity * gMatAmbient.rgb;
     
     // Diffuse 조명 계산
     float3 lightDir = normalize(-gLightDirection.xyz);
     float diff = max(dot(normalize(input.normal), lightDir), 0.0f);
-    float3 diffuse = gLightColor.rgb * diff;
+    float3 diffuse = gLightColor.rgb * diff * gMatDiffuse.rgb;
     
     // 최종 색상 계산
     float3 resultColor = (ambient + diffuse) * input.color.rgb;
