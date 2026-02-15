@@ -74,15 +74,15 @@ float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
     // return float4(gLightColor.rgb, 1.0f);
     
     // Ambient 조명 계산
-    float ambientIntensity = 0.3f;
-    float3 ambient = gLightColor.rgb * ambientIntensity * gMatAmbient.rgb;
+    float ambientIntensity = 0.5f;
+    float3 ambient = gLightColor.rgb * ambientIntensity;
     
     // Diffuse 조명 계산
     float3 lightDir = normalize(-gLightDirection.xyz);
     float diff = max(dot(normalize(input.normal), lightDir), 0.0f);
-    float3 diffuse = gLightColor.rgb * diff * gMatDiffuse.rgb;
+    float3 diffuse = gLightColor.rgb * diff;
     
-    // 최종 색상 계산
+    // 최종 색상 계산 (버텍스 컬러에 재질 색상이 이미 포함됨)
     float3 resultColor = (ambient + diffuse) * input.color.rgb;
     
     return float4(resultColor, input.color.a);

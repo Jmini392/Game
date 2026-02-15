@@ -103,6 +103,16 @@ void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
 {
 	UINT baseVertex = static_cast<UINT>(vertices.size());
 
+	// 메쉬에 연결된 재질 가져오기
+	XMFLOAT4 meshDiffuseColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	if (mesh->mMaterialIndex < scene->mNumMaterials) {
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		aiColor4D diffuse;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse)) {
+			meshDiffuseColor = XMFLOAT4(diffuse.r, diffuse.g, diffuse.b, diffuse.a);
+		}
+	}
+
 	// 정점 데이터 추출
 	for (UINT i = 0; i < mesh->mNumVertices; i++) {
 		Vertex vertex;
@@ -125,7 +135,7 @@ void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
 			vertex.m_xmf2UV.y = mesh->mTextureCoords[0][i].y;
 		}
 
-		// 색상 (있는 경우)
+		// 색상: 버텍스 컬러가 있으면 사용, 없으면 메쉬의 재질 Diffuse 색상 사용
 		if (mesh->HasVertexColors(0)) {
 			vertex.m_xmf4Diffuse.x = mesh->mColors[0][i].r;
 			vertex.m_xmf4Diffuse.y = mesh->mColors[0][i].g;
@@ -133,7 +143,8 @@ void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
 			vertex.m_xmf4Diffuse.w = mesh->mColors[0][i].a;
 		}
 		else {
-			vertex.m_xmf4Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			// 메쉬의 재질 Diffuse 색상을 버텍스 컬러로 사용
+			vertex.m_xmf4Diffuse = meshDiffuseColor;
 		}
 
 		vertices.push_back(vertex);
