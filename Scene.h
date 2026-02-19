@@ -33,12 +33,6 @@ public:
 	 
 public:
 	void AddObject(Object* obj, GROUP_TYPE type) { arrObj[(UINT)type].push_back(obj); }
-	void SetShaderToAllObjects(Shader* pShader) {
-		for (UINT i = 0; i < (UINT)GROUP_TYPE::END; ++i) {
-			for (size_t j = 0; j < arrObj[i].size(); ++j) {
-				arrObj[i][j]->SetShader(pShader);
-			}
-		}
-	}
+	void SetShaderToAllObjects(Shader* pShader);
 };
 

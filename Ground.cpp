@@ -1,24 +1,33 @@
 #include "stdafx.h"
 #include "Ground.h"
 #include "ResourceMgr.h"
-Mesh*	Ground::m_pGroundMesh = NULL;
 
-Ground::Ground(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+Ground::Ground(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, POINT chunk)
 {
-	m_ppStaticMeshes = &m_pGroundMesh;
-	if (m_pGroundMesh == NULL)
-	{
-		m_pGroundMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"Ground", L"Res/Meshes/Ground.fbx");
+
+	Mesh* m_pGroundMesh = ResourceMgr::Instance()->LoadMesh(pd3dDevice, pd3dCommandList, L"ground");
+	if (m_pGroundMesh == nullptr) {
+		m_pGroundMesh = new GroundMesh(pd3dDevice, pd3dCommandList, 50, 50);
+		ResourceMgr::Instance()->AddMesh(L"ground", m_pGroundMesh);
 	}
-	XMFLOAT3 pos = XMFLOAT3(0.0f, 20.0f, 0.0f), scale = XMFLOAT3(20.0f, 20.0f, 20.0f);
-	float rotate_angle = 90.0f;
-	XMFLOAT3 rotate_axis = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//Move(&pos);
-	Scale(&scale);
-	// Rotate(&rotate_axis, rotate_angle);
 	SetMesh(m_pGroundMesh);
+
+	XMFLOAT3 init = XMFLOAT3(chunk.x, 0.0f, chunk.y * 50.0f);
+	Move(&init);
 }
 
 Ground::~Ground()
+{
+}
+
+Hill::Hill(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,POINT chunk, float angle)
+	: Ground(pd3dDevice, pd3dCommandList, chunk)
+{
+	m_fSlopeAngle = angle;
+	XMFLOAT3 ro = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	Rotate(&ro, m_fSlopeAngle);
+}
+
+Hill::~Hill()
 {
 }

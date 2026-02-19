@@ -112,6 +112,9 @@
     <ClInclude Include="Mesh.h">
       <Filter>Engine\04.Object</Filter>
     </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Engine\04.Object\Entities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc">
@@ -174,6 +177,9 @@
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="sphere.cpp">
+      <Filter>Engine\04.Object\Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

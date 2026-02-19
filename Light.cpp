@@ -16,8 +16,11 @@ Light::~Light()
 
 void Light::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
 {
-	// 루트 파라미터 인덱스 2번 (b2 레지스터)에 조명 정보 전달
-	// XMFLOAT4 4개 = 16개의 float = 16개의 32bit 상수
-	pd3dCommandList->SetGraphicsRoot32BitConstants(2, 4, &m_xmf4Color, 0);
-	pd3dCommandList->SetGraphicsRoot32BitConstants(2, 4, &m_xmf4Direction, 4);
+	CB_LIGHT_INFO lightInfo;
+	lightInfo.m_xmf4LightColor = m_xmf4Color;
+	lightInfo.m_xmf4LightDirection = m_xmf4Direction;
+	lightInfo.m_xmf4CameraPosition = m_xmf4CameraPosition;
+	lightInfo.m_xmf4LightParams = m_xmf4Params;
+
+	Shader::UpdateLightCBV(pd3dCommandList, lightInfo);
 }

@@ -32,6 +32,31 @@ Mesh* ResourceMgr::FindMesh(const std::wstring& strKey) {
 
 Mesh* ResourceMgr::LoadMesh(ID3D12Device* pd3dDevice,
 	ID3D12GraphicsCommandList* pd3dCommandList,
+	const std::wstring& strKey) {
+	Mesh* pMesh = FindMesh(strKey);
+	if (pMesh != nullptr) {
+		return pMesh;
+	}
+	return nullptr;
+}
+
+Mesh* ResourceMgr::LoadMeshObj(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList,
+	const std::wstring& strKey,
+	const std::string& strRelativePath) {
+	Mesh* pMesh = FindMesh(strKey);
+	if (pMesh != nullptr) {
+		return pMesh;
+	}
+	pMesh = new Mesh(pd3dDevice, pd3dCommandList, strRelativePath);
+
+	m_mapMesh.insert({ strKey, pMesh });
+
+	return pMesh;
+}
+
+Mesh* ResourceMgr::LoadMeshFbx(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList,
 	const std::wstring& strKey,
 	const std::wstring& strRelativePath)
 {

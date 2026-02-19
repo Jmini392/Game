@@ -51,7 +51,7 @@ public:
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
 		const std::vector<Vertex>& vertices, const std::vector<UINT>& indices);
-	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile, int obj);
+	Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, std::string MeshFile);
 	virtual ~Mesh();
 private:
 	int m_nReferences = 0;

@@ -62,3 +62,11 @@ void Scene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dComma
 void Scene::Exit()
 {
 }
+
+void Scene::SetShaderToAllObjects(Shader* pShader) {
+	for (UINT i = 0; i < (UINT)GROUP_TYPE::END; ++i) {
+		for (size_t j = 0; j < arrObj[i].size(); ++j) {
+			arrObj[i][j]->SetShader(pShader);
+		}
+	}
+}

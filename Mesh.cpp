@@ -52,7 +52,7 @@ Mesh::Mesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
 
 Mesh::Mesh(ID3D12Device* pd3dDevice,
     ID3D12GraphicsCommandList* pd3dCommandList,
-    std::string MeshFile, int obj)
+    std::string MeshFile)
 {
     std::ifstream file(MeshFile);
     if (!file.is_open()) {

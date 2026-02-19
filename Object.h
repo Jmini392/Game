@@ -12,7 +12,6 @@ private:
 protected:
 	XMFLOAT4X4 m_xmf4x4World;
 	Mesh* m_pMesh = NULL;
-	Mesh** m_ppStaticMeshes = NULL;
 	Shader* m_pShader = NULL;
 public:
 	Object();
@@ -29,8 +28,10 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera);
 	// virtual RECT GetBB() {};
 
-	void DeleteMesh();
 	void Scale(XMFLOAT3* pxmf3Scale);
 	void Move(XMFLOAT3* pxmf3Shift);
 	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
+
+	XMFLOAT3 GetPosition() const { return XMFLOAT3(m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43); }
+	void SetPosition(XMFLOAT3 xmf3Position);
 };

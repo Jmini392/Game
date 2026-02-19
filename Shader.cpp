@@ -1,8 +1,10 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "Shader.h"
 
 ID3D12RootSignature* Shader::s_pd3dGraphicsRootSignature = nullptr;
 bool Shader::s_bRootSignatureCreated = false;
+ID3D12Resource* Shader::s_pd3dLightCB = nullptr;
+CB_LIGHT_INFO* Shader::s_pMappedLight = nullptr;
 
 Shader::Shader()
 {
@@ -18,50 +20,77 @@ Shader::~Shader()
 	}
 }
 
+void Shader::CreateConstantBuffers(ID3D12Device* pd3dDevice)
+{
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	// Light ìƒìˆ˜ ë²„í¼ ìƒì„± (256ë°”ì´íŠ¸ ì •ë ¬)
+	UINT lightCBSize = (sizeof(CB_LIGHT_INFO) + 255) & ~255;
+	resourceDesc.Width = lightCBSize;
+
+	pd3dDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+		&resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		IID_PPV_ARGS(&s_pd3dLightCB));
+
+	s_pd3dLightCB->Map(0, nullptr, (void**)&s_pMappedLight);
+}
+
+void Shader::ReleaseConstantBuffers()
+{
+	if (s_pd3dLightCB)
+	{
+		s_pd3dLightCB->Unmap(0, nullptr);
+		s_pd3dLightCB->Release();
+		s_pd3dLightCB = nullptr;
+		s_pMappedLight = nullptr;
+	}
+}
+
 void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 {
-	if (s_bRootSignatureCreated) return;  // ÀÌ¹Ì »ý¼ºµÊ
+	if (s_bRootSignatureCreated) return;
 
-	// Root Parameter ¼³Á¤
-	D3D12_ROOT_PARAMETER pd3dRootParameters[4];
+	D3D12_ROOT_PARAMETER pd3dRootParameters[3];
 
-	// Root Parameter[0]: World Çà·Ä (b0 ·¹Áö½ºÅÍ)
+	// [0] World í–‰ë ¬ - Root Constants (16 DWORDs)
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[0].Constants.Num32BitValues = 16;  // 4x4 Çà·Ä
-	pd3dRootParameters[0].Constants.ShaderRegister = 0;
+	pd3dRootParameters[0].Constants.Num32BitValues = 16;
+	pd3dRootParameters[0].Constants.ShaderRegister = 0;  // b0
 	pd3dRootParameters[0].Constants.RegisterSpace = 0;
 	pd3dRootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-	// Root Parameter[1]: View + Projection Çà·Ä (b1 ·¹Áö½ºÅÍ)
+	// [1] View + Projection í–‰ë ¬ - Root Constants (32 DWORDs)
 	pd3dRootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[1].Constants.Num32BitValues = 32;  // µÎ °³ÀÇ 4x4 Çà·Ä
-	pd3dRootParameters[1].Constants.ShaderRegister = 1;
+	pd3dRootParameters[1].Constants.Num32BitValues = 32;
+	pd3dRootParameters[1].Constants.ShaderRegister = 1;  // b1
 	pd3dRootParameters[1].Constants.RegisterSpace = 0;
 	pd3dRootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-	// Root Parameter[2]: Á¶¸í Á¤º¸ (b2 ·¹Áö½ºÅÍ) - ÇÈ¼¿ ¼ÎÀÌ´õ¿¡¼­ »ç¿ë
-	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[2].Constants.Num32BitValues = 8;  // CB_LIGHT_INFO ±¸Á¶Ã¼ Å©±â (4°³ÀÇ XMFLOAT4)
-	pd3dRootParameters[2].Constants.ShaderRegister = 2;
-	pd3dRootParameters[2].Constants.RegisterSpace = 0;
+	// [2] ì¡°ëª… ì •ë³´ - Root CBV (2 DWORDs)
+	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	pd3dRootParameters[2].Descriptor.ShaderRegister = 2;  // b2
+	pd3dRootParameters[2].Descriptor.RegisterSpace = 0;
 	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-	// Root Parameter[3]: ÀçÁú Á¤º¸ (b3 ·¹Áö½ºÅÍ) - ÇÈ¼¿ ¼ÎÀÌ´õ¿¡¼­ »ç¿ë
-	pd3dRootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[3].Constants.Num32BitValues = 8;  // CB_MATERIAL_INFO ±¸Á¶Ã¼ Å©±â (4°³ÀÇ XMFLOAT4)
-	pd3dRootParameters[3].Constants.ShaderRegister = 3;
-	pd3dRootParameters[3].Constants.RegisterSpace = 0;
-	pd3dRootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-	// Root Signature Flags - ÀÌÁ¦ ÇÈ¼¿ ¼ÎÀÌ´õµµ Á¢±Ù °¡´ÉÇÏµµ·Ï º¯°æ
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-		// D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS Á¦°Å!
 
-	// Root Signature Descriptor
 	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
 	::ZeroMemory(&d3dRootSignatureDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC));
 	d3dRootSignatureDesc.NumParameters = _countof(pd3dRootParameters);
@@ -70,41 +99,43 @@ void Shader::CreateRootSignature(ID3D12Device* pd3dDevice)
 	d3dRootSignatureDesc.pStaticSamplers = NULL;
 	d3dRootSignatureDesc.Flags = d3dRootSignatureFlags;
 
-	// Root Signature Á÷·ÄÈ­
 	ID3DBlob* pd3dSignatureBlob = NULL;
 	ID3DBlob* pd3dErrorBlob = NULL;
-	HRESULT hResult = ::D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-		&pd3dSignatureBlob, &pd3dErrorBlob);
+	HRESULT hResult = ::D3D12SerializeRootSignature(&d3dRootSignatureDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1, &pd3dSignatureBlob, &pd3dErrorBlob);
 
 	if (FAILED(hResult)) {
 		if (pd3dErrorBlob) {
-			OutputDebugStringA("·çÆ® ½Ã±×´ÏÃ³ Á÷·ÄÈ­ ¿À·ù: ");
+			OutputDebugStringA("ë£¨íŠ¸ ì‹œê·¸ë‹ˆì²˜ ì§ë ¬í™” ì˜¤ë¥˜: ");
 			OutputDebugStringA((char*)pd3dErrorBlob->GetBufferPointer());
 			pd3dErrorBlob->Release();
 		}
-		return;  // ½ÇÆÐ ½Ã ÇÃ·¡±× ¼³Á¤ÇÏÁö ¾Ê°í ¹ÝÈ¯
+		return;
 	}
 
-	// Root Signature »ý¼º
 	hResult = pd3dDevice->CreateRootSignature(0, pd3dSignatureBlob->GetBufferPointer(),
 		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature),
 		(void**)&s_pd3dGraphicsRootSignature);
 
-	// Blob ÇØÁ¦
 	if (pd3dSignatureBlob) pd3dSignatureBlob->Release();
 	if (pd3dErrorBlob) pd3dErrorBlob->Release();
 
 	if (FAILED(hResult)) {
-		OutputDebugStringA("·çÆ® ½Ã±×´ÏÃ³ »ý¼º ½ÇÆÐ!\n");
-		return;  // ½ÇÆÐ ½Ã ÇÃ·¡±× ¼³Á¤ÇÏÁö ¾Ê°í ¹ÝÈ¯
+		OutputDebugStringA("ë£¨íŠ¸ ì‹œê·¸ë‹ˆì²˜ ìƒì„± ì‹¤íŒ¨!\n");
+		return;
 	}
 
+	// ìƒìˆ˜ ë²„í¼ ìƒì„±
+	CreateConstantBuffers(pd3dDevice);
+
+	OutputDebugStringA("ë£¨íŠ¸ ì‹œê·¸ë‹ˆì²˜ ìƒì„± ì„±ê³µ! (CBV ì‚¬ìš©)\n");
 	s_bRootSignatureCreated = true;
 }
 
-// Root Signature ÇØÁ¦
 void Shader::ReleaseRootSignature()
 {
+	ReleaseConstantBuffers();
+
 	if (s_pd3dGraphicsRootSignature)
 	{
 		s_pd3dGraphicsRootSignature->Release();
@@ -113,7 +144,14 @@ void Shader::ReleaseRootSignature()
 	s_bRootSignatureCreated = false;
 }
 
-//·¡½ºÅÍ¶óÀÌÀú »óÅÂ¸¦ ¼³Á¤ÇÏ±â À§ÇÑ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯ÇÑ´Ù. 
+void Shader::UpdateLightCBV(ID3D12GraphicsCommandList* pd3dCommandList, const CB_LIGHT_INFO& lightInfo)
+{
+	if (s_pMappedLight) {
+		memcpy(s_pMappedLight, &lightInfo, sizeof(CB_LIGHT_INFO));
+	}
+	pd3dCommandList->SetGraphicsRootConstantBufferView(2, s_pd3dLightCB->GetGPUVirtualAddress());
+}
+
 D3D12_RASTERIZER_DESC Shader::CreateRasterizerState()
 {
 	D3D12_RASTERIZER_DESC d3dRasterizerDesc;
@@ -132,7 +170,6 @@ D3D12_RASTERIZER_DESC Shader::CreateRasterizerState()
 	return(d3dRasterizerDesc);
 }
 
-//±íÀÌ-½ºÅÙ½Ç °Ë»ç¸¦ À§ÇÑ »óÅÂ¸¦ ¼³Á¤ÇÏ±â À§ÇÑ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯ÇÑ´Ù. 
 D3D12_DEPTH_STENCIL_DESC Shader::CreateDepthStencilState()
 {
 	D3D12_DEPTH_STENCIL_DESC d3dDepthStencilDesc;
@@ -154,7 +191,6 @@ D3D12_DEPTH_STENCIL_DESC Shader::CreateDepthStencilState()
 	return(d3dDepthStencilDesc);
 }
 
-//ºí·»µù »óÅÂ¸¦ ¼³Á¤ÇÏ±â À§ÇÑ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯ÇÑ´Ù. 
 D3D12_BLEND_DESC Shader::CreateBlendState()
 {
 	D3D12_BLEND_DESC d3dBlendDesc;
@@ -174,7 +210,6 @@ D3D12_BLEND_DESC Shader::CreateBlendState()
 	return(d3dBlendDesc);
 }
 
-//ÀÔ·Â Á¶¸³±â¿¡°Ô Á¤Á¡ ¹öÆÛÀÇ ±¸Á¶¸¦ ¾Ë·ÁÁÖ±â À§ÇÑ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯ÇÑ´Ù. 
 D3D12_INPUT_LAYOUT_DESC Shader::CreateInputLayout()
 {
 	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
@@ -183,7 +218,6 @@ D3D12_INPUT_LAYOUT_DESC Shader::CreateInputLayout()
 	return(d3dInputLayoutDesc);
 }
 
-//Á¤Á¡ ¼ÎÀÌ´õ ¹ÙÀÌÆ® ÄÚµå¸¦ »ý¼º(ÄÄÆÄÀÏ)ÇÑ´Ù. 
 D3D12_SHADER_BYTECODE Shader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
 {
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
@@ -192,7 +226,6 @@ D3D12_SHADER_BYTECODE Shader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
 	return(d3dShaderByteCode);
 }
 
-//ÇÈ¼¿ ¼ÎÀÌ´õ ¹ÙÀÌÆ® ÄÚµå¸¦ »ý¼º(ÄÄÆÄÀÏ)ÇÑ´Ù. 
 D3D12_SHADER_BYTECODE Shader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
 {
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
@@ -201,9 +234,8 @@ D3D12_SHADER_BYTECODE Shader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
 	return(d3dShaderByteCode);
 }
 
-//¼ÎÀÌ´õ ¼Ò½º ÄÚµå¸¦ ÄÄÆÄÀÏÇÏ¿© ¹ÙÀÌÆ® ÄÚµå ±¸Á¶Ã¼¸¦ ¹ÝÈ¯ÇÑ´Ù.
-D3D12_SHADER_BYTECODE Shader::CompileShaderFromFile(const WCHAR *pszFileName, LPCSTR
-pszShaderName, LPCSTR pszShaderProfile, ID3DBlob** ppd3dShaderBlob)
+D3D12_SHADER_BYTECODE Shader::CompileShaderFromFile(const WCHAR* pszFileName, LPCSTR
+	pszShaderName, LPCSTR pszShaderProfile, ID3DBlob** ppd3dShaderBlob)
 {
 	UINT nCompileFlags = 0;
 #if defined(_DEBUG)
@@ -216,30 +248,24 @@ pszShaderName, LPCSTR pszShaderProfile, ID3DBlob** ppd3dShaderBlob)
 	{
 		if (pErrorBlob)
 		{
-			OutputDebugStringA("¼ÎÀÌ´õ ÄÄÆÄÀÏ ¿¡·¯: ");
+			OutputDebugStringA("ì…°ì´ë” ì»´íŒŒì¼ ì—ëŸ¬: ");
 			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 			OutputDebugStringA("\n");
 			pErrorBlob->Release();
 		}
-
-		// ÄÄÆÄÀÏ ½ÇÆÐ ½Ã ºó ¹ÙÀÌÆ®ÄÚµå ¹ÝÈ¯
 		D3D12_SHADER_BYTECODE d3dShaderByteCode;
 		d3dShaderByteCode.BytecodeLength = 0;
 		d3dShaderByteCode.pShaderBytecode = NULL;
 		return d3dShaderByteCode;
 	}
-
 	if (pErrorBlob) pErrorBlob->Release();
 
-	::D3DCompileFromFile(pszFileName, NULL, NULL, pszShaderName, pszShaderProfile,
-		nCompileFlags, 0, ppd3dShaderBlob, NULL);
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
 	d3dShaderByteCode.BytecodeLength = (*ppd3dShaderBlob)->GetBufferSize();
 	d3dShaderByteCode.pShaderBytecode = (*ppd3dShaderBlob)->GetBufferPointer();
 	return(d3dShaderByteCode);
 }
 
-//±×·¡ÇÈ½º ÆÄÀÌÇÁ¶óÀÎ »óÅÂ °´Ã¼¸¦ »ý¼ºÇÑ´Ù. 
 void Shader::CreateShader(ID3D12Device* pd3dDevice)
 {
 	if (!s_bRootSignatureCreated)
@@ -274,7 +300,6 @@ void Shader::CreateShader(ID3D12Device* pd3dDevice)
 
 void Shader::OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList)
 {
-	// Pipeline State ¼³Á¤
 	if (m_ppd3dPipelineStates && m_ppd3dPipelineStates[0])
 	{
 		pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
@@ -286,8 +311,7 @@ void Shader::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 	OnPrepareRender(pd3dCommandList);
 }
 
-void Shader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
-	* pd3dCommandList)
+void Shader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
@@ -295,22 +319,14 @@ void Shader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
-void Shader::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4
-	* pxmf4x4World)
+void Shader::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World)
 {
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(pxmf4x4World)));
 	pd3dCommandList->SetGraphicsRoot32BitConstants(0, 16, &xmf4x4World, 0);
 }
 
-// Á¶¸í Á¤º¸¸¦ ¼ÎÀÌ´õ¿¡ Àü´Þ
-void Shader::UpdateLightVariable(ID3D12GraphicsCommandList* pd3dCommandList,
-	const CB_LIGHT_INFO& lightInfo)
-{
-	pd3dCommandList->SetGraphicsRoot32BitConstants(2, 16, &lightInfo, 0);
-}
-
-void Shader::ReleaseShaderVariables()			
+void Shader::ReleaseShaderVariables()
 {
 }
 
@@ -338,14 +354,12 @@ D3D12_INPUT_LAYOUT_DESC DiffusedShader::CreateInputLayout()
 
 D3D12_SHADER_BYTECODE DiffusedShader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
 {
-	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1",
-		ppd3dShaderBlob));
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob));
 }
 
 D3D12_SHADER_BYTECODE DiffusedShader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
 {
-	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1",
-		ppd3dShaderBlob));
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob));
 }
 
 void DiffusedShader::CreateShader(ID3D12Device* pd3dDevice)

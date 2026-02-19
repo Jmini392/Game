@@ -16,7 +16,6 @@ Object::~Object()
 		m_pShader->ReleaseShaderVariables();
 		m_pShader->Release();
 	}
-	if (m_ppStaticMeshes) delete[] m_ppStaticMeshes;
 }
 
 void Object::SetShader(Shader* pShader)
@@ -51,24 +50,11 @@ void Object::Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera)
 	OnPrepareRender();
 	if (m_pShader)
 	{
-		//게임 객체의 월드 변환 행렬을 셰이더의 상수 버퍼로 전달(복사)한다. 
 		m_pShader->UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
 		m_pShader->Render(pd3dCommandList, pCamera);
 	}
 	if (m_pMesh) {
-		Material mat = m_pMesh->GetMaterial();
-		pd3dCommandList->SetGraphicsRoot32BitConstants(3, 4, &mat.Ambient, 0);
-		pd3dCommandList->SetGraphicsRoot32BitConstants(3, 4, &mat.Diffuse, 4);
-
 		m_pMesh->Render(pd3dCommandList);
-	}
-}
-
-void Object::DeleteMesh()
-{
-	if (m_ppStaticMeshes && *m_ppStaticMeshes) {
-		delete* m_ppStaticMeshes;
-		*m_ppStaticMeshes = NULL;
 	}
 }
 
@@ -90,4 +76,10 @@ void Object::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis),
 		XMConvertToRadians(fAngle));
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+}
+
+void Object::SetPosition(XMFLOAT3 xmf3Position) {
+	m_xmf4x4World._41 = xmf3Position.x;
+	m_xmf4x4World._42 = xmf3Position.y;
+	m_xmf4x4World._43 = xmf3Position.z;
 }

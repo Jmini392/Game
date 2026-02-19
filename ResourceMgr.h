@@ -22,10 +22,18 @@ private:
 
 public:
 	void Release();
-
-	
-	// 메쉬 로드 (캐싱 지원)
+	// 직접 메쉬 로드 (캐싱 지원)
 	Mesh* LoadMesh(ID3D12Device* pd3dDevice, 
+		ID3D12GraphicsCommandList* pd3dCommandList, 
+		const std::wstring& strKey);
+	void AddMesh(const std::wstring& strKey, Mesh* pMesh) { m_mapMesh.insert({ strKey, pMesh }); }
+	// 메쉬 로드 Obj
+	Mesh* LoadMeshObj(ID3D12Device* pd3dDevice,
+		ID3D12GraphicsCommandList* pd3dCommandList,
+		const std::wstring& strKey,
+		const std::string& strRelativePath);
+	// 메쉬 로드 (캐싱 지원) Fbx
+	Mesh* LoadMeshFbx(ID3D12Device* pd3dDevice, 
 		ID3D12GraphicsCommandList* pd3dCommandList, 
 		const std::wstring& strKey, 
 		const std::wstring& strRelativePath);
