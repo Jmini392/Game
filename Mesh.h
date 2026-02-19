@@ -95,7 +95,6 @@ public:
 	virtual ~GroundMesh();
 };
 
-<<<<<<< HEAD
 class DiffusedVertex : public Vertex
 {
 protected:
@@ -132,5 +131,3 @@ public:
 	*pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f, float fRed = 1.0f, float fGreen = 1.0f, float fBlue = 1.0f);
 	virtual ~CubeMeshDiffused();
 };
-=======
->>>>>>> JI_MIN

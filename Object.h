@@ -25,6 +25,7 @@ public:
 	virtual void SetShader(Shader* pShader);
 	virtual void Animate(float fTimeElapsed);
 	virtual void OnPrepareRender();
+	virtual void Update();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, Camera* pCamera);
 	// virtual RECT GetBB() {};
 
