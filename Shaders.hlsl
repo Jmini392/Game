@@ -60,3 +60,4 @@ float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
 
     return float4(resultColor, input.color.a);
 }
+//end
