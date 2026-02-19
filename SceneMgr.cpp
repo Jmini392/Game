@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "TestScene.h"
 #include "KeyMgr.h"
+#include "PlayScene.h"
 
 SceneMgr::SceneMgr()
     : currScene(nullptr)
@@ -30,6 +31,7 @@ SceneMgr::~SceneMgr()
 
 void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
+<<<<<<< HEAD
     // 씬들 생성
     arrScene[(UINT)SCENE_TYPE::TEST] = new TestScene();
     // 추가 씬들 생성...
@@ -41,10 +43,22 @@ void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCom
     if (currScene) {
         currScene->Enter(pd3dDevice, pd3dCommandList);
     }
+=======
+	//Scene ����
+	arrScene[(UINT)SCENE_TYPE::TEST] = new PlayScene;
+	arrScene[(UINT)SCENE_TYPE::TEST]->SetName(L"Play Scene");
+	//arrScene[(UINT)SCENE_TYPE::STAGE_O1] = new Scene_Start;
+	//arrScene[(UINT)SCENE_TYPE::STAGE_O2] = new Scene_Start;
+
+	//���� �� ����
+	currScene = arrScene[(UINT)SCENE_TYPE::TEST];
+	currScene->Enter(pd3dDevice, pd3dCommandList);
+>>>>>>> JI_MIN
 }
 
-void SceneMgr::Update()
+void SceneMgr::Update(float fTimeElapesd)
 {
+<<<<<<< HEAD
     // 🔄 씬 전환 처리
     if (m_bSceneChanging) {
         ProcessSceneChange();
@@ -188,6 +202,9 @@ SCENE_TYPE SceneMgr::GetCurrentSceneType() const
         }
     }
     return SCENE_TYPE::END;
+=======
+	currScene->Update(fTimeElapesd);
+>>>>>>> JI_MIN
 }
 
 void SceneMgr::Render(ID3D12GraphicsCommandList* pd3dCommandList)

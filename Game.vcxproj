@@ -158,11 +158,8 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Resource.h" />
-<<<<<<< HEAD
     <ClInclude Include="Road.h" />
-=======
     <ClInclude Include="ResourceMgr.h" />
->>>>>>> JI_MIN
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneMgr.h" />
     <ClInclude Include="Shader.h" />
@@ -185,12 +182,9 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
-<<<<<<< HEAD
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Road.cpp" />
-=======
     <ClCompile Include="ResourceMgr.cpp" />
->>>>>>> JI_MIN
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneMgr.cpp" />
     <ClCompile Include="Shader.cpp" />
