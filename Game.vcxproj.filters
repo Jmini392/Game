@@ -41,6 +41,12 @@
     <Filter Include="Engine\05.Scene\TestScene">
       <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\04.Object\Road">
+      <UniqueIdentifier>{3fea483b-1663-41a3-ab78-e81b4d3ba380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Obstacle">
+      <UniqueIdentifier>{d8ba0b9e-c58c-4998-a1d1-6f716db5d4a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -54,9 +60,6 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Define</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="define.h">
       <Filter>Engine\01.Header</Filter>
@@ -91,6 +94,15 @@
     <ClInclude Include="Shader.h">
       <Filter>Engine\06.Shader</Filter>
     </ClInclude>
+    <ClInclude Include="Road.h">
+      <Filter>Engine\04.Object\Road</Filter>
+    </ClInclude>
+    <ClInclude Include="Obstacle.h">
+      <Filter>Engine\04.Object\Obstacle</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Engine\01.Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc">
@@ -107,9 +119,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="Core.cpp">
@@ -141,6 +150,15 @@
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Engine\06.Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Road.cpp">
+      <Filter>Engine\04.Object\Road</Filter>
+    </ClCompile>
+    <ClCompile Include="Obstacle.cpp">
+      <Filter>Engine\04.Object\Obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Engine\01.Header</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
