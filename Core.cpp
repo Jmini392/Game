@@ -5,6 +5,7 @@
 #include "KeyMgr.h"
 #include "SceneMgr.h"
 #include "Shader.h"
+#include "ResourceMgr.h"
 
 Core::Core()
 	:m_handle(0)
@@ -108,7 +109,9 @@ void Core::Progress()
 {
 	TimeMgr::Instance()->Update();
 	KeyMgr::Instance()->Update();
-	SceneMgr::Instance()->Update();
+
+	float fTimeElapsed = TimeMgr::Instance()->getfDT();
+	SceneMgr::Instance()->Update(fTimeElapsed);
 
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
@@ -131,7 +134,7 @@ void Core::Progress()
 		m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, FALSE,
 		&d3dDsvCPUDescriptorHandle);
-	float pfClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+	float pfClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor, 0,
 		NULL);
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle,

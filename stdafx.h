@@ -17,12 +17,15 @@
 #include <vector>
 #include <cmath>
 
+// C++ 표준 라이브러리 헤더 파일
 #include <string>
 #include <wrl.h>
 #include <shellapi.h>
 
+// DirectX 헤더 파일
 #include <d3d12.h>
 #include <dxgi1_4.h>
+
 
 #include <D3Dcompiler.h>
 
@@ -38,6 +41,7 @@ using namespace DirectX::PackedVector;
 
 using Microsoft::WRL::ComPtr;
 
+// 링커에 필요한 라이브러리 링크
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
