@@ -3,6 +3,7 @@
 #include "Ground.h"
 #include "Car.h"
 #include "sphere.h"
+#include "SoundMgr.h"
 
 PlayScene::PlayScene()
 {
@@ -14,6 +15,7 @@ PlayScene::~PlayScene()
 
 void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
+	SoundMgr::Instance()->Play("bgm", "Res/Sounds/bgm.mp3", 0.5f);
 	// 카메라 설정 (부모 Scene에서 이미 생성됨)
 	if (m_pCamera) {
 		m_pCamera->SetViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
@@ -61,6 +63,7 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 
 void PlayScene::Exit()
 {
+	SoundMgr::Instance()->Stop("bgm");
 }
 
 void PlayScene::RoadMeshes(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)

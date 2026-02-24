@@ -6,6 +6,7 @@
 #include "SceneMgr.h"
 #include "Shader.h"
 #include "ResourceMgr.h"
+#include "SoundMgr.h"
 
 Core::Core()
 	:m_handle(0)
@@ -62,6 +63,7 @@ int Core::Init(HWND handle, HINSTANCE hInstance)
 	//Manager
 	TimeMgr::Instance()->Init();
 	KeyMgr::Instance()->Init();
+	SoundMgr::Instance()->Init();
 
 	// 객체 생성 Commandlist 설정
 	BuildObjects();
