@@ -1,120 +1,88 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Define">
-      <UniqueIdentifier>{b16ebd21-6e07-4afd-b03c-46a7e1356c3c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine">
-      <UniqueIdentifier>{0b6d5aa2-86d5-41e9-9c39-405857bc068b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\01.Header">
-      <UniqueIdentifier>{40887dee-a04a-40a7-ab90-31adf704f763}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\02.Core">
-      <UniqueIdentifier>{e9a3a072-11b5-4a4f-a198-23cd7be8c70f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\03.Manager">
-      <UniqueIdentifier>{b6caf18c-2e85-4bf2-bf2b-801f743c334d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\04.Object">
-      <UniqueIdentifier>{e7970f50-c296-4554-91a2-a2f2281efea4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\05.Scene">
-      <UniqueIdentifier>{3cac53df-2b5d-4729-becd-b758e20a5383}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\06.Shader">
-      <UniqueIdentifier>{6fca2d2d-dbdf-49e2-bed0-9dd6a0cc0a9c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\03.Manager\Key">
-      <UniqueIdentifier>{9f8df2c2-d356-4ecf-a4af-bb6a5af8304c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\03.Manager\Scene">
-      <UniqueIdentifier>{667cdd5b-20ce-4ef7-aa54-7e14153add10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\03.Manager\Time">
-      <UniqueIdentifier>{4a9e9ec5-810c-4f7b-bf0c-7aa3a1943f93}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\05.Scene\PlayScene">
-      <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\04.Object\Road">
-      <UniqueIdentifier>{3fea483b-1663-41a3-ab78-e81b4d3ba380}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\04.Object\Obstacle">
-      <UniqueIdentifier>{d8ba0b9e-c58c-4998-a1d1-6f716db5d4a5}</UniqueIdentifier>
-    <Filter Include="Engine\04.Object\Map">
-      <UniqueIdentifier>{06938f69-c277-4e33-9c43-e31cb5ba2804}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\03.Manager\Resource">
-      <UniqueIdentifier>{d1759982-d9df-472e-9f29-1b971e68201a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\04.Object\Entities">
-      <UniqueIdentifier>{39bac426-a117-41bb-bd88-21bc3d7ebda1}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="Core.cpp">
+      <Filter>Engine\02.Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Engine\05.Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneMgr.cpp">
+      <Filter>Engine\03.Manager\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceMgr.cpp">
+      <Filter>Engine\03.Manager\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyMgr.cpp">
+      <Filter>Engine\03.Manager\Key</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Ground.cpp">
+      <Filter>Engine\04.Object\Ground</Filter>
+    </ClCompile>
+    <ClCompile Include="Road.cpp">
+      <Filter>Engine\04.Object\Road</Filter>
+    </ClCompile>
+    <ClCompile Include="miniaudio.cpp">
+      <Filter>Engine\01.Header</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayScene.cpp">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Obstacle.cpp">
+      <Filter>Engine\04.Object\Obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="car.cpp">
+      <Filter>Engine\04.Object\Car</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Engine\01.Header</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundMgr.cpp">
+      <Filter>Engine\03.Manager\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Engine\04.Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Engine\06.Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="sphere.cpp">
+      <Filter>Engine\04.Object\Sphere</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeMgr.cpp">
+      <Filter>Engine\03.Manager\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Define</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>Define</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Define</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Define</Filter>
+    <ClInclude Include="Core.h">
+      <Filter>Engine\02.Core</Filter>
     </ClInclude>
     <ClInclude Include="define.h">
       <Filter>Engine\01.Header</Filter>
     </ClInclude>
-    <ClInclude Include="Core.h">
-      <Filter>Engine\02.Core</Filter>
-    </ClInclude>
-    <ClInclude Include="KeyMgr.h">
-      <Filter>Engine\03.Manager\Key</Filter>
-    </ClInclude>
-    <ClInclude Include="TimeMgr.h">
-      <Filter>Engine\03.Manager\Time</Filter>
+    <ClInclude Include="Scene.h">
+      <Filter>Engine\05.Scene</Filter>
     </ClInclude>
     <ClInclude Include="SceneMgr.h">
       <Filter>Engine\03.Manager\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Engine\04.Object</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayScene.h">
-      <Filter>Engine\05.Scene\PlayScene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Engine\05.Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Engine\06.Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="Road.h">
-      <Filter>Engine\04.Object\Road</Filter>
-    </ClInclude>
-    <ClInclude Include="Obstacle.h">
-      <Filter>Engine\04.Object\Obstacle</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Engine\01.Header</Filter>
-    <ClInclude Include="Ground.h">
-      <Filter>Engine\04.Object\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="car.h">
-      <Filter>Engine\04.Object\Entities</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Engine\04.Object</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceMgr.h">
       <Filter>Engine\03.Manager\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyMgr.h">
+      <Filter>Engine\03.Manager\Key</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>Engine\04.Object</Filter>
@@ -122,14 +90,57 @@
     <ClInclude Include="Mesh.h">
       <Filter>Engine\04.Object</Filter>
     </ClInclude>
-    <ClInclude Include="sphere.h">
-      <Filter>Engine\04.Object\Entities</Filter>
+    <ClInclude Include="Ground.h">
+      <Filter>Engine\04.Object\Ground</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Game.rc">
-      <Filter>리소스 파일</Filter>
-    </ResourceCompile>
+    <ClInclude Include="Road.h">
+      <Filter>Engine\04.Object\Road</Filter>
+    </ClInclude>
+    <ClInclude Include="miniaudio.h">
+      <Filter>Engine\01.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayScene.h">
+      <Filter>Engine\05.Scene\PlayScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Obstacle.h">
+      <Filter>Engine\04.Object\Obstacle</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="car.h">
+      <Filter>Engine\04.Object\Car</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Engine\01.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundMgr.h">
+      <Filter>Engine\03.Manager\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Engine\06.Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Engine\04.Object\Sphere</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeMgr.h">
+      <Filter>Engine\03.Manager\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Define</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
@@ -140,62 +151,71 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Core.cpp">
-      <Filter>Engine\02.Core</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyMgr.cpp">
-      <Filter>Engine\03.Manager\Key</Filter>
-    </ClCompile>
-    <ClCompile Include="TimeMgr.cpp">
-      <Filter>Engine\03.Manager\Time</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneMgr.cpp">
-      <Filter>Engine\03.Manager\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Engine\04.Object</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayScene.cpp">
-      <Filter>Engine\05.Scene\PlayScene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Engine\05.Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Engine\06.Shader</Filter>
-    </ClCompile>
-    <ClCompile Include="Road.cpp">
-      <Filter>Engine\04.Object\Road</Filter>
-    </ClCompile>
-    <ClCompile Include="Obstacle.cpp">
-      <Filter>Engine\04.Object\Obstacle</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Engine\01.Header</Filter>
-    <ClCompile Include="Ground.cpp">
-      <Filter>Engine\04.Object\Map</Filter>
-    </ClCompile>
-    <ClCompile Include="car.cpp">
-      <Filter>Engine\04.Object\Entities</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Engine\04.Object</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceMgr.cpp">
-      <Filter>Engine\03.Manager\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>Engine\04.Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Engine\04.Object</Filter>
-    </ClCompile>
-    <ClCompile Include="sphere.cpp">
-      <Filter>Engine\04.Object\Entities</Filter>
-    </ClCompile>
+    <Filter Include="Define">
+      <UniqueIdentifier>{f96e979f-964e-46ce-8ca9-9597038a1512}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{5c0d0524-d378-460b-b7ba-bb23214d4eb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\01.Header">
+      <UniqueIdentifier>{df183039-fa47-443e-8988-2cfc1b09ff05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\02.Core">
+      <UniqueIdentifier>{91c97b39-e04d-4e5f-b1b0-c8c0b5f1992d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager">
+      <UniqueIdentifier>{d8b7a5d1-02d9-493b-8491-366d197242e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Key">
+      <UniqueIdentifier>{2a803415-019b-422f-8fb3-edaff0a195b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Scene">
+      <UniqueIdentifier>{84c3daa9-77fe-4361-ab11-b4d6f9294648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Time">
+      <UniqueIdentifier>{3119d8e2-7bc3-4b62-9a03-3b20836f82be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Resource">
+      <UniqueIdentifier>{7e45b807-18db-43a1-bcba-a3b66732fdb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object">
+      <UniqueIdentifier>{27c6bb6c-78d8-4443-96dd-4b6bf377e867}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Ground">
+      <UniqueIdentifier>{8d41d405-ce63-44a9-a685-5a57e9833beb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Road">
+      <UniqueIdentifier>{0df37c6d-5cc9-421a-9440-8d8d6d2258a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Obstacle">
+      <UniqueIdentifier>{42f252bc-9940-42a7-82af-3e49fa5f4697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\05.Scene">
+      <UniqueIdentifier>{3520b92c-1996-4d5f-8e98-d330b50a62ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\05.Scene\PlayScene">
+      <UniqueIdentifier>{e5f3de8f-0b4a-44f0-bf59-dc92c6cd648b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\06.Shader">
+      <UniqueIdentifier>{2b46d268-454f-4a80-8481-e1f62f906921}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Car">
+      <UniqueIdentifier>{70c85d7b-a909-4742-a04e-5e7df4dae37b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03.Manager\Sound">
+      <UniqueIdentifier>{3e1b1990-2f5b-4866-aac7-0b3743ebe264}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{fe67e8ba-0869-4faf-899e-5ccad5450edf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\Sphere">
+      <UniqueIdentifier>{dc5c454f-c117-40ae-ab74-106198d4945d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Game.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders.hlsl">
