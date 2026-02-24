@@ -8,7 +8,6 @@
 #include "Mesh.h"
 
 
-
 class ResourceMgr
 {
 	SINGLE(ResourceMgr);

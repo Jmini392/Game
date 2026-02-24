@@ -41,7 +41,7 @@
       <Filter>Engine\04.Object</Filter>
     </ClCompile>
     <ClCompile Include="car.cpp">
-      <Filter>Engine\04.Object\Car</Filter>
+      <Filter>Engine\04.Object\car</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Engine\01.Header</Filter>
@@ -63,6 +63,9 @@
     </ClCompile>
     <ClCompile Include="Game.cpp">
       <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree.cpp">
+      <Filter>Engine\04.Object\car</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,7 +115,7 @@
       <Filter>Engine\04.Object</Filter>
     </ClInclude>
     <ClInclude Include="car.h">
-      <Filter>Engine\04.Object\Car</Filter>
+      <Filter>Engine\04.Object\car</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">
       <Filter>Define</Filter>
@@ -143,6 +146,9 @@
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Engine\01.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree.h">
+      <Filter>Engine\04.Object\car</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -202,9 +208,6 @@
     <Filter Include="Engine\06.Shader">
       <UniqueIdentifier>{2b46d268-454f-4a80-8481-e1f62f906921}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\04.Object\Car">
-      <UniqueIdentifier>{70c85d7b-a909-4742-a04e-5e7df4dae37b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\03.Manager\Sound">
       <UniqueIdentifier>{3e1b1990-2f5b-4866-aac7-0b3743ebe264}</UniqueIdentifier>
     </Filter>
@@ -213,6 +216,9 @@
     </Filter>
     <Filter Include="Engine\04.Object\Sphere">
       <UniqueIdentifier>{dc5c454f-c117-40ae-ab74-106198d4945d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04.Object\car">
+      <UniqueIdentifier>{70c85d7b-a909-4742-a04e-5e7df4dae37b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

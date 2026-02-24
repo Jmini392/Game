@@ -171,6 +171,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="PlayScene.h" />
     <ClInclude Include="TimeMgr.h" />
+    <ClInclude Include="Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
@@ -200,6 +201,7 @@
     </ClCompile>
     <ClCompile Include="PlayScene.cpp" />
     <ClCompile Include="TimeMgr.cpp" />
+    <ClCompile Include="Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />

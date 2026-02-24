@@ -4,6 +4,7 @@
 #include "Car.h"
 #include "sphere.h"
 #include "SoundMgr.h"
+#include "Tree.h"
 
 PlayScene::PlayScene()
 {
@@ -43,6 +44,9 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		}
 	}
 
+	Tree* tree = new Tree(pd3dDevice, pd3dCommandList, XMFLOAT3(0.0f, 0.0f, 100.0f));
+	AddObject(tree, GROUP_TYPE::TEST);
+
 	Car* car = new Car(pd3dDevice, pd3dCommandList, XMFLOAT3(0.0f, 0.0f, 10.0f), XMFLOAT3(10,10,10));
 	AddObject(car, GROUP_TYPE::TEST);
 
@@ -59,6 +63,8 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 	pShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
 	SetShaderToAllObjects(pShader);
+
+	
 }
 
 void PlayScene::Exit()
