@@ -1,4 +1,10 @@
 #pragma once
+struct Texture
+{
+	ID3D12Resource* pResource = nullptr;
+	ID3D12Resource* pUploadBuffer = nullptr;
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = {};
+};
 // 재질을 표현하기 위한 구조체이다.
 struct Material
 {
@@ -6,6 +12,7 @@ struct Material
 	XMFLOAT4 Diffuse;
 	XMFLOAT4 Specular;  // w = Shininess
 	XMFLOAT4 Emissive;
+	Texture* pTexture = nullptr;
 
 	Material() {
 		Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);

@@ -3,6 +3,8 @@
 #include <locale>
 #include <codecvt>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 ResourceMgr::ResourceMgr() {}
 
@@ -98,7 +100,7 @@ Mesh* ResourceMgr::LoadMeshFbx(ID3D12Device* pd3dDevice,
 	pMesh->AddRef();
 
 	if (scene->mNumMaterials > 0) {
-		Material mat = ProcessMaterial(scene->mMaterials[0]);
+		Material mat = ProcessMaterial(pd3dDevice, pd3dCommandList ,scene->mMaterials[0], strRelativePath);
 		pMesh->SetMaterial(mat);
 	}
 
@@ -185,7 +187,10 @@ void ResourceMgr::ProcessMesh(aiMesh* mesh, const aiScene* scene,
 }
 
 // 재질 추출 함수 구현
-Material ResourceMgr::ProcessMaterial(aiMaterial* material)
+Material ResourceMgr::ProcessMaterial(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList, 
+	aiMaterial* material, 
+	const std::wstring& strFbxFilePath)
 {
 	Material mat;
 
@@ -217,5 +222,166 @@ Material ResourceMgr::ProcessMaterial(aiMaterial* material)
 		mat.Emissive = XMFLOAT4(color.r, color.g, color.b, color.a);
 	}
 
+	// Diffuse 텍스처 로드
+	aiString texturePath;
+	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+		if (AI_SUCCESS == material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath)) {
+			// FBX 파일의 디렉토리 경로 추출
+			std::wstring directory = strFbxFilePath.substr(0, strFbxFilePath.find_last_of(L'/') + 1);
+
+			// 텍스처 파일 이름(UTF-8)을 wstring으로 변환
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+			std::wstring wTexturePath = converter.from_bytes(texturePath.C_Str());
+
+			// 전체 경로 조합 및 텍스처 로드
+			std::wstring fullTexturePath = directory + wTexturePath;
+			mat.pTexture = LoadTexture(pd3dDevice, pd3dCommandList, wTexturePath, fullTexturePath);
+		}
+	}
+
 	return mat;
+}
+
+Texture* ResourceMgr::LoadTexture(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList,
+	const std::wstring& strKey,
+	const std::wstring& strRelativePath)
+{
+	// 1. 캐시에서 텍스처 찾기
+	Texture* pTexture = FindTexture(strKey);
+	if (pTexture)
+		return pTexture;
+
+	// 2. 텍스처 파일 경로 조합 및 로드
+	wchar_t szFullPath[256] = {};
+	wcscpy_s(szFullPath, 256, L"Res/Textures/");
+	wcscat_s(szFullPath, 256, strRelativePath.c_str());
+
+	char cPath[256];
+	WideCharToMultiByte(CP_ACP, 0, szFullPath, -1, cPath, 256, NULL, NULL);
+
+	int width, height, channels;
+	unsigned char* pImageData = stbi_load(cPath, &width, &height, &channels, 4);
+	if (!pImageData)
+	{
+		assert(NULL);
+		return nullptr;
+	}
+
+	// 4. D3D12 텍스처 리소스 생성
+	D3D12_RESOURCE_DESC textureDesc = {};
+	textureDesc.MipLevels = 1;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	textureDesc.DepthOrArraySize = 1;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+	Texture newTexture;
+
+	// CD3DX12_HEAP_PROPERTIES 대체
+	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+	defaultHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	defaultHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	defaultHeapProps.CreationNodeMask = 1;
+	defaultHeapProps.VisibleNodeMask = 1;
+
+	pd3dDevice->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&textureDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&newTexture.pResource));
+
+	// 5. 업로드 힙 생성 및 데이터 복사
+	// GetRequiredIntermediateSize 대체
+	UINT64 uploadBufferSize;
+	pd3dDevice->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
+
+	// CD3DX12_HEAP_PROPERTIES 대체
+	D3D12_HEAP_PROPERTIES uploadHeapProps = {};
+	uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	uploadHeapProps.CreationNodeMask = 1;
+	uploadHeapProps.VisibleNodeMask = 1;
+
+	// CD3DX12_RESOURCE_DESC::Buffer 대체
+	D3D12_RESOURCE_DESC bufferDesc = {};
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Alignment = 0;
+	bufferDesc.Width = uploadBufferSize;
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.SampleDesc.Quality = 0;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	pd3dDevice->CreateCommittedResource(
+		&uploadHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&newTexture.pUploadBuffer));
+
+	// UpdateSubresources 대체
+	D3D12_SUBRESOURCE_DATA textureData = {};
+	textureData.pData = pImageData;
+	textureData.RowPitch = width * 4;
+	textureData.SlicePitch = textureData.RowPitch * height;
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+	UINT numRows;
+	UINT64 rowSizeInBytes;
+	pd3dDevice->GetCopyableFootprints(&textureDesc, 0, 1, 0, &layout, &numRows, &rowSizeInBytes, nullptr);
+
+	void* pMappedData;
+	newTexture.pUploadBuffer->Map(0, nullptr, &pMappedData);
+	for (UINT i = 0; i < numRows; ++i)
+	{
+		BYTE* pDestSlice = reinterpret_cast<BYTE*>(pMappedData) + layout.Offset + i * layout.Footprint.RowPitch;
+		const BYTE* pSrcSlice = reinterpret_cast<const BYTE*>(textureData.pData) + i * textureData.RowPitch;
+		memcpy(pDestSlice, pSrcSlice, rowSizeInBytes);
+	}
+	newTexture.pUploadBuffer->Unmap(0, nullptr);
+
+	D3D12_TEXTURE_COPY_LOCATION destLocation = { newTexture.pResource, D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX, 0 };
+	D3D12_TEXTURE_COPY_LOCATION srcLocation = { newTexture.pUploadBuffer, D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT, layout };
+	pd3dCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, nullptr);
+
+
+	// 6. 리소스 상태 전이
+	// CD3DX12_RESOURCE_BARRIER::Transition 대체
+	D3D12_RESOURCE_BARRIER resourceBarrier = {};
+	resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	resourceBarrier.Transition.pResource = newTexture.pResource;
+	resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	pd3dCommandList->ResourceBarrier(1, &resourceBarrier);
+
+	// 7. 임시 데이터 해제
+	stbi_image_free(pImageData);
+
+	// 8. 텍스처 맵에 저장 및 반환
+	auto iter = m_mapTexture.insert({ strKey, newTexture });
+	return &iter.first->second;
+}
+
+Texture* ResourceMgr::FindTexture(const std::wstring& strKey) {
+	auto iter = m_mapTexture.find(strKey);
+	if (iter != m_mapTexture.end()) {
+		return &iter->second;
+	}
+	return nullptr;
 }
