@@ -368,6 +368,7 @@ void Core::BuildObjects()
 
 	// SceneMgr::Init에서 Scene Enter 호출 - 여기서 메쉬와 셰이더가 생성됨
 	SceneMgr::Instance()->Init(m_pd3dDevice, m_pd3dCommandList);
+	
 
 	// CommandList를 닫고 실행
 	m_pd3dCommandList->Close();

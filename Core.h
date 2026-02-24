@@ -77,4 +77,3 @@ public:
 
 	void MoveToNextFrame();
 };
-

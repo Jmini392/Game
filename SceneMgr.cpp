@@ -32,7 +32,6 @@ SceneMgr::~SceneMgr()
 void SceneMgr::Init(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
     // 씬들 생성
-    arrScene[(UINT)SCENE_TYPE::TEST] = new PlayScene();
     // 추가 씬들 생성...
     // arrScene[(UINT)SCENE_TYPE::MENU] = new MenuScene();
     // arrScene[(UINT)SCENE_TYPE::GAME] = new GameScene();
