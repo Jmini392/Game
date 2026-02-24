@@ -41,13 +41,11 @@
     <Filter Include="Engine\05.Scene\PlayScene">
       <UniqueIdentifier>{0d7cb774-05ab-43c4-9b19-8ec95ade1f9e}</UniqueIdentifier>
     </Filter>
-<<<<<<< HEAD
     <Filter Include="Engine\04.Object\Road">
       <UniqueIdentifier>{3fea483b-1663-41a3-ab78-e81b4d3ba380}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\04.Object\Obstacle">
       <UniqueIdentifier>{d8ba0b9e-c58c-4998-a1d1-6f716db5d4a5}</UniqueIdentifier>
-=======
     <Filter Include="Engine\04.Object\Map">
       <UniqueIdentifier>{06938f69-c277-4e33-9c43-e31cb5ba2804}</UniqueIdentifier>
     </Filter>
@@ -56,7 +54,6 @@
     </Filter>
     <Filter Include="Engine\04.Object\Entities">
       <UniqueIdentifier>{39bac426-a117-41bb-bd88-21bc3d7ebda1}</UniqueIdentifier>
->>>>>>> JI_MIN
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -99,7 +96,6 @@
     <ClInclude Include="Shader.h">
       <Filter>Engine\06.Shader</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="Road.h">
       <Filter>Engine\04.Object\Road</Filter>
     </ClInclude>
@@ -108,7 +104,6 @@
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Engine\01.Header</Filter>
-=======
     <ClInclude Include="Ground.h">
       <Filter>Engine\04.Object\Map</Filter>
     </ClInclude>
@@ -129,7 +124,6 @@
     </ClInclude>
     <ClInclude Include="sphere.h">
       <Filter>Engine\04.Object\Entities</Filter>
->>>>>>> JI_MIN
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -173,7 +167,6 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Engine\06.Shader</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="Road.cpp">
       <Filter>Engine\04.Object\Road</Filter>
     </ClCompile>
@@ -182,7 +175,6 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Engine\01.Header</Filter>
-=======
     <ClCompile Include="Ground.cpp">
       <Filter>Engine\04.Object\Map</Filter>
     </ClCompile>
@@ -203,7 +195,6 @@
     </ClCompile>
     <ClCompile Include="sphere.cpp">
       <Filter>Engine\04.Object\Entities</Filter>
->>>>>>> JI_MIN
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
