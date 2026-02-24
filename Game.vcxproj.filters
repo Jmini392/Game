@@ -141,6 +141,9 @@
     <ClInclude Include="targetver.h">
       <Filter>Define</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Engine\01.Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
