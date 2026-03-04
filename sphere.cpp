@@ -3,6 +3,7 @@
 #include "ResourceMgr.h"
 
 MovingSphere::MovingSphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float speed, int line)
+	: sphere(pd3dDevice, pd3dCommandList)
 {
 	Mesh* m_psphereMesh = ResourceMgr::Instance()->LoadMeshObj(pd3dDevice, pd3dCommandList, L"sphere", "Res/Meshes/sphere.obj");
 	
@@ -21,7 +22,7 @@ MovingSphere::~MovingSphere()
 void MovingSphere::Animate(float fTimeElapsed)
 {
 	RotateSphere(fTimeElapsed);
-	MoveSphere(fTimeElapsed);
+	//MoveSphere(fTimeElapsed);
 }
 
 void MovingSphere::RotateSphere(float fTimeElapsed)
@@ -37,6 +38,7 @@ void MovingSphere::MoveSphere(float fTimeElapsed)
 }
 
 BounsSphere::BounsSphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+	: sphere(pd3dDevice, pd3dCommandList)
 {
 	Mesh* m_psphereMesh = ResourceMgr::Instance()->LoadMeshObj(pd3dDevice, pd3dCommandList, L"sphere", "Res/Meshes/sphere.obj");
 	
@@ -68,7 +70,7 @@ void BounsSphere::MoveSphere(float fTimeElapsed)
 
 	// 위치 이동
 	XMFLOAT3 shift = XMFLOAT3(0.0f, m_fDownSpeed * fTimeElapsed, m_fMoveSpeed * fTimeElapsed);
-	Move(&shift);
+	//Move(&shift);
 
 	// 바닥 충돌 검사 및 튕기기
 	XMFLOAT3 pos = GetPosition();

@@ -149,6 +149,7 @@
     <ClInclude Include="car.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="define.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Ground.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="car.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>

@@ -342,3 +342,66 @@ GroundMesh::GroundMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3d
 GroundMesh::~GroundMesh()
 {
 }
+
+AxisMesh::AxisMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fLength)
+    : Mesh(pd3dDevice, pd3dCommandList)
+{
+    // 6개의 정점: 각 축당 2개 (원점과 끝점)
+    std::vector<Vertex> vertices;
+    std::vector<UINT> indices;
+
+    // X축 - 빨강 (0 -> 1)
+    vertices.push_back({ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) });
+    vertices.push_back({ XMFLOAT3(fLength, 0.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) });
+
+    // Y축 - 초록 (2 -> 3)
+    vertices.push_back({ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) });
+    vertices.push_back({ XMFLOAT3(0.0f, fLength, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) });
+
+    // Z축 - 파랑 (4 -> 5)
+    vertices.push_back({ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) });
+    vertices.push_back({ XMFLOAT3(0.0f, 0.0f, fLength), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) });
+
+    // 인덱스 (라인 리스트)
+    indices = { 0, 1, 2, 3, 4, 5 };
+
+    // ========================
+    // Vertex Buffer
+    // ========================
+    m_nVertices = (UINT)vertices.size();
+    m_nStride = sizeof(Vertex);
+    m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_LINELIST; // 라인으로 그리기
+
+    m_pd3dVertexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        (void*)vertices.data(),
+        m_nStride * m_nVertices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+        &m_pd3dVertexUploadBuffer
+    );
+
+    m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+    m_d3dVertexBufferView.StrideInBytes = m_nStride;
+    m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+    // ========================
+    // Index Buffer
+    // ========================
+    m_nIndices = (UINT)indices.size();
+
+    m_pd3dIndexBuffer = ::CreateBufferResource(
+        pd3dDevice,
+        pd3dCommandList,
+        (void*)indices.data(),
+        sizeof(UINT) * m_nIndices,
+        D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATE_INDEX_BUFFER,
+        &m_pd3dIndexUploadBuffer
+    );
+
+    m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+    m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+    m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+}

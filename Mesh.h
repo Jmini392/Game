@@ -95,3 +95,9 @@ public:
 	virtual ~GroundMesh();
 };
 
+class AxisMesh : public Mesh
+{
+public:
+	AxisMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fLength = 5.0f);
+	~AxisMesh() {};
+};

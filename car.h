@@ -1,6 +1,6 @@
 #pragma once
-#include "Object.h"
-class Car : public Object
+#include "Entity.h"
+class Car : public Entity
 {
 private:
 	float m_fRotationSpeed = 90.0f; // degrees per second

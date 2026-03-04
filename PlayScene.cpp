@@ -32,8 +32,8 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pLight->SetLightDirection(XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f)); // 위→아래 방향광
 	}
 
-	Ground* grounds[10];
-	for (int i = 0; i < 10; i++) {
+	Ground* grounds[20];
+	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 5; j++) {
 			POINT chunk = { (j - 2) * 50, i };
 			grounds[i] = new Ground(pd3dDevice, pd3dCommandList,chunk );

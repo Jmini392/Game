@@ -3,6 +3,7 @@
 #include "ResourceMgr.h"
 
 Car::Car(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT3 pos, XMFLOAT3 scale)
+	: Entity(pd3dDevice, pd3dCommandList)
 {
 	
 	Mesh* m_pCarMesh = ResourceMgr::Instance()->LoadMeshFbx(pd3dDevice, pd3dCommandList, L"milk", L"Res/Meshes/milk.fbx");

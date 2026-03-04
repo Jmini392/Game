@@ -1,8 +1,10 @@
 #pragma once
-#include "Object.h"
+#include "Entity.h"
 
-class sphere : public Object
+class sphere : public Entity
 {
+public:
+	sphere(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) : Entity(pd3dDevice,pd3dCommandList){};
 protected:
 	float					m_fRotationSpeed = 90.0f; // degrees per second
 	float					m_fRadius = 15.0f; // 구 반지름
