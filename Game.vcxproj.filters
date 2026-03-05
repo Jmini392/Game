@@ -115,6 +115,12 @@
     <ClInclude Include="sphere.h">
       <Filter>Engine\04.Object\Entities</Filter>
     </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Engine\04.Object\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Engine\04.Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc">
@@ -180,6 +186,12 @@
     </ClCompile>
     <ClCompile Include="sphere.cpp">
       <Filter>Engine\04.Object\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Engine\04.Object\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Engine\04.Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

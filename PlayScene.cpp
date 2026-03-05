@@ -48,14 +48,6 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 	Car* car = new Car(pd3dDevice, pd3dCommandList, XMFLOAT3(0.0f, 0.0f, 10.0f), XMFLOAT3(10,10,10));
 	AddObject(car, GROUP_TYPE::TEST);
 
-	for (int i = 0; i < 5; i++) {
-		MovingSphere* sphere = new MovingSphere(pd3dDevice, pd3dCommandList, -20.0f - i * 10.0f, i);
-		AddObject(sphere, GROUP_TYPE::TEST);
-	}
-
-	BounsSphere* ball = new BounsSphere(pd3dDevice, pd3dCommandList);
-	AddObject(ball, GROUP_TYPE::TEST);
-
 	DiffusedShader* pShader = new DiffusedShader();
 	pShader->CreateShader(pd3dDevice);
 	pShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
