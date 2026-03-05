@@ -1,4 +1,7 @@
 #pragma once
+struct InstanceData {
+	XMFLOAT4X4 World;
+};
 // 재질을 표현하기 위한 구조체이다.
 struct Material
 {

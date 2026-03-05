@@ -17,6 +17,7 @@ cbuffer cbLightInfo : register(b2)
     float4 gLightParams : packoffset(c3);
 };
 
+
 struct VS_INPUT
 {
     float3 position : POSITION;
