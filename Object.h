@@ -32,6 +32,7 @@ public:
 	void Move(XMFLOAT3* pxmf3Shift);
 	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
 
+	XMFLOAT4X4 GetWorldMatrix() const { return m_xmf4x4World; }
 	XMFLOAT3 GetPosition() const { return XMFLOAT3(m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43); }
 	void SetPosition(XMFLOAT3 xmf3Position);
 };

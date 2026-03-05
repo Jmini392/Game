@@ -3,6 +3,7 @@
 #include "Ground.h"
 #include "Car.h"
 #include "sphere.h"
+#include "Player.h"
 
 PlayScene::PlayScene()
 {
@@ -31,6 +32,9 @@ void PlayScene::Enter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dC
 		m_pLight->SetLightColor(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)); // Èò»ö ±¤¿ø
 		m_pLight->SetLightDirection(XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f)); // À§¡æ¾Æ·¡ ¹æÇâ±¤
 	}
+
+	Player* player = new Player(pd3dDevice, pd3dCommandList);
+	AddObject(player, GROUP_TYPE::TEST);
 
 	Ground* grounds[20];
 	for (int i = 0; i < 20; i++) {

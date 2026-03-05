@@ -213,6 +213,17 @@ namespace Matrix4x4
 		XMStoreFloat4x4(&xmmtx4x4Result, xmmtxMatrix1 * XMLoadFloat4x4(&xmmtx4x4Matrix2));
 		return(xmmtx4x4Result);
 	}
+	inline XMFLOAT4X4 RotationY_Multiply(float fAngle)
+	{
+		XMFLOAT4X4 xmmtx4x4Result = {
+			cos(fAngle),	0.0f,	-sin(fAngle),	0.0f,
+			0.0f,			1.0f,	0.0f,			0.0f,
+			sin(fAngle),	0.0f,	cos(fAngle),	0.0f,
+			0.0f,			0.0f,	0.0f,			1.0f
+		};
+		
+		return(xmmtx4x4Result);
+	}
 	inline XMFLOAT4X4 Inverse(XMFLOAT4X4& xmmtx4x4Matrix)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
