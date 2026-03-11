@@ -12,6 +12,7 @@ class ResourceMgr
 private:
 	std::map<std::wstring, Mesh*> m_mapMesh;
 	
+private:
 	// Assimp로부터 메쉬 데이터 추출
 	void ProcessNode(aiNode* node, const aiScene* scene, 
 		std::vector<Vertex>& vertices, std::vector<UINT>& indices);

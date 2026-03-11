@@ -8,9 +8,7 @@ Player::Player(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandL
 	Mesh* m_pPlayerMesh = ResourceMgr::Instance()->LoadMeshFbx(pd3dDevice, pd3dCommandList, L"player", L"Res/Meshes/player.fbx");
 	SetMesh(m_pPlayerMesh);
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 20.0f, 50.0f);
-	XMFLOAT3 scale = XMFLOAT3(15.0f, 15.0f, 15.0f);
-	XMFLOAT3 rot = XMFLOAT3(1.0f, 0.0f, 0.0f);
-	Rotate(&rot, -30.0f);
+	XMFLOAT3 scale = XMFLOAT3(5.0f, 5.0f, 5.0f);
  	Move(&pos);
 	Scale(&scale);
 }

@@ -118,8 +118,8 @@
     <ClInclude Include="Entity.h">
       <Filter>Engine\04.Object\Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Engine\04.Object</Filter>
+    <ClInclude Include="Player.h">
+      <Filter>Engine\04.Object\Entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -190,8 +190,8 @@
     <ClCompile Include="Entity.cpp">
       <Filter>Engine\04.Object\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Engine\04.Object</Filter>
+    <ClCompile Include="Player.cpp">
+      <Filter>Engine\04.Object\Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
